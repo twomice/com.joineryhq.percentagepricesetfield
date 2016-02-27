@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<extension key="com.joineryhq.percentagepricesetfield" type="module">
+  <file>percentagepricesetfield</file>
+  <name>Percentage Price Set Field</name>
+  <description>Provides an additional price set field type, "Automatic Percentage", which can add an additional amount to a transaction, as a configurable percentage of other selected price set options.</description>
+  <license>GPL-3.0</license>
+  <maintainer>
+    <author>Allen Shaw</author>
+    <email>allen@JoineryHQ.com</email>
+  </maintainer>
+  <releaseDate>2016-02-26</releaseDate>
+  <version>1.0</version>
+  <develStage>alpha</develStage>
+  <compatibility>
+    <ver>4.6</ver>
+  </compatibility>
+  <comments>Initial development sponsored by the Vestibular Disorders Assocation.</comments>
+  <civix>
+    <namespace>CRM/Percentagepricesetfield</namespace>
+  </civix>
+</extension>
