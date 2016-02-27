@@ -10,17 +10,136 @@
 
 require_once 'percentagepricesetfield.civix.php';
 
+function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
+//  return;
+  $field_id = _percentagepricesetfield_get_pergentage_field_id($form);
+  if ($field_id) {
+    if (!_percentagepricesetfield_is_displayForm($form)) {
+      // If this is the confirmation page, adjust the line item label.
+      if (!empty($form->_submitValues) && array_key_exists("price_{$field_id}", $form->_submitValues)) {
+        // "Percentage" checkbox will have only one option, but ID is unknow to us,
+        // so use a foreach loop. If the one option for the percentage checkbox is
+        // checked, adjust the total and label for the checkbox.
+        foreach ($amount[$field_id]['options'] as $option_id => &$option) {
+          // Determine whether "percentage" checkbox was checked.
+          if ($form->_submitValues["price_{$field_id}"][$option_id]) {
+            $option['amount'] = _percentagepricesetfield_calculate_total($form);
+            $option['label'] = _percentagepricesetfield_calculate_label($form);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Determine whether or not the given form is the actual form (not, say, a
+ * confirmation page).
+ *
+ * @return Boolean TRUE if this is the actual form.
+ */
+function _percentagepricesetfield_is_displayForm($form) {
+  $action = $form->controller->_actionName;
+  return ($action[1] == 'display');
+
+}
+
+function _percentagepricesetfield_get_pergentage_field_id($form) {
+  // FIXME: get actual id
+  return 17;
+}
+
+function _percentagepricesetfield_calculate_total($form) {
+  // FIXME: do actual math.
+  return 2222.23;
+}
+
+function _percentagepricesetfield_get_properties($form) {
+  // FIXME: IS this funtion ever called?
+  // FIXME: get actual properties, and use static caching
+
+  // - configurable values for a percentage field:
+  //  - Checkbox label (e.g., Please add 4% to my donation amount to cover credit-card processing fees.)
+  //  - checkbox help text (e.g., "This helps us a lot, thank you!")
+  //  - line item label (e.g., "4% extra for credit card fees")
+  //  - percentage (e.g., 4.0)
+  return array(
+    'checkbox_label',
+  );
+}
+
+function _percentagepricesetfield_calculate_label($form) {
+  // FIXME: dynamically build string.
+  $label = ts('FIXME: %1 %', array(1 => _percentagepricesetfield_calculate_total($form)));
+  return $label;
+}
+
+function _percentagepricesetfield_get_percentage($form) {
+  // FIXME: get the actual percentage from the field.
+  return 2.3;
+}
+
 function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
-  if ($formName == 'CRM_Price_Form_Field') {
-    _percentagepricesetfield_buildForm_PriceFormField($form);
+  switch ($formName) {
+    case 'CRM_Price_Form_Field':
+      _percentagepricesetfield_buildForm_PriceFormField($form);
+      break;
+
+    case 'CRM_Event_Form_Registration_Register':
+    case 'CRM_Contribute_Form_Contribution_Main':
+      _percentagepricesetfield_buildForm_public_price_set_form($form);
+      break;
+
+  }
+}
+
+function _percentagepricesetfield_buildForm_public_price_set_form($form) {
+  dsm($form);
+  $field_id = _percentagepricesetfield_get_pergentage_field_id($form);
+  if ($field_id) {
+    if (array_key_exists("price_{$field_id}", $form->_elementIndex)) {
+      $field =& $form->_elements[$form->_elementIndex["price_{$field_id}"]];
+      foreach ($field->_elements as &$element) {
+        // Use the field label as the label for this checkbox element.
+        $element->_text = $field->_label;
+        // Set this checkbox's "price" to 0. CiviCRM uses a custom format for this
+        // attribute, parsing it later in JavaScript to auto-calculate the total
+        // (see CRM/Price/Form/Calculate.tpl). Setting the price to 0 allows us
+        // to avoid having this checkbox affect that calculation, and we'll use our
+        // own JavaScript to adjust the total based on the percentage.
+        $element->_attributes['price'] = preg_replace('/(\["[0-9]+",")[0-9]+(\|.+)$/', '${1}0${2}', $element->_attributes['price']); // e.g., ["30","20||"]: change "20" to "0".
+        $element_id = $field->_name . '_' . $element->_attributes['id'];
+      }
+      // Remove this field's label (we copied it to the checkbox itself a few lines
+      // above.
+      $field->_label = '';
+
+      $resource = CRM_Core_Resources::singleton();
+      $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/public_price_set_form.js', 100, 'page-footer');
+      $vars = array(
+        'percentage' => _percentagepricesetfield_get_percentage($form),
+        'percentage_checkbox_id' => $element_id,
+      );
+      $resource->addVars('percentagepricesetfield', $vars);
+    }
   }
 }
 
 function _percentagepricesetfield_buildForm_PriceFormField(&$form) {
-  dfb(__FUNCTION__);
+  // FIXME: TODO:
+  // - configurable values for a percentage field:
+  //  - Checkbox label (e.g., Please add 4% to my donation amount to cover credit-card processing fees.)
+  //  - checkbox help text (e.g., "This helps us a lot, thank you!")
+  //  - line item label (e.g., "4% extra for credit card fees")
+  //  - percentage (e.g., 4.0)
+  //
+
+  dsm('FIXME: '. __FUNCTION__ . ' not running.'); return;
+
+
   // Add custom JavaScript to override option_html_type() function
   $resource = CRM_Core_Resources::singleton();
-  $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/percentagepricesetfield.js', 100, 'html-header');
+  $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/percentagepricesetfield.js', 100, 'page-footer');
 
   // Remove the CRM_Price_Form_Field::formRule form rule. We'll call it ourselves
   // in our own form rule.

@@ -4,6 +4,7 @@
  */
 
 cj(function($) {
+  console.log("I'm here!");
   var ts = CRM.ts('org.example.myextension')
   var  percentagepricesetfield_option_html_type_original = option_html_type
 
