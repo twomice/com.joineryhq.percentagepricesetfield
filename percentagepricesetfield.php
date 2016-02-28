@@ -12,8 +12,6 @@
 require_once 'percentagepricesetfield.civix.php';
 
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
-  dsm(__FUNCTION__);
-//dsm(func_get_args(), __FUNCTION__);
   $field_id = _percentagepricesetfield_get_pergentage_field_id($form);
   if ($field_id) {
     if (!_percentagepricesetfield_is_displayForm($form)) {
@@ -138,7 +136,6 @@ function _percentagepricesetfield_get_percentage($form) {
 }
 
 function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
-//  dsm($formName);
   switch ($formName) {
     case 'CRM_Price_Form_Field':
       _percentagepricesetfield_buildForm_AdminPriceField($form);
@@ -153,7 +150,6 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
 }
 
 function _percentagepricesetfield_buildForm_public_price_set_form($form) {
-//  dsm($form);
   $field_id = _percentagepricesetfield_get_pergentage_field_id($form);
   if ($field_id) {
     if (array_key_exists("price_{$field_id}", $form->_elementIndex)) {
@@ -185,7 +181,6 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
 }
 
 function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
-  dsm($form, 'form before modification in '. __FUNCTION__);
   if (
     $form->_flagSubmitted
     && !$form->_submitValues['fid']
@@ -193,7 +188,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     && $form->_submitValues['is_percentagepricesetfield']
   ) {
     // Auto-create the list of options to have a single option.
-    $form->_submitValues['option_label'] = array(1 => 'THIS STRING IS A MEANINGLESS PLACEHOLDER');
+    $form->_submitValues['option_label'] = array(1 => 'THIS PAGE VIEW NOT SUPPORTED BY THE percentagepricesetfield EXTENSION.');
     $form->_submitValues['option_amount'] = array(1 => 1);
     $form->_submitValues['option_financial_type_id'] = array(1 => $form->_submitValues['percentagepricesetfield_financial_type_id']);
     $form->_submitValues['option_status'] = array(1 => 1);
@@ -203,7 +198,6 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
       $form->_submitValues['option_financial_type_id'][$i] = '';
       $form->_submitValues['option_status'][$i] = '';
     }
-    dsm($form, 'form after modification in '. __FUNCTION__);
   }
 
 
@@ -216,7 +210,6 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   //  - Custom: percentage (e.g., 4.0)
   //
 
-//  dsm('FIXME: '. __FUNCTION__ . ' not running.'); return;
 
 
   // Add custom JavaScript to override option_html_type() function
@@ -285,14 +278,12 @@ function _percentagepricesetfield_setDefaults_adminPriceField(&$form) {
   }
 
   $values = _percentagepricesetfield_get_values($field_id);
-  dsm($values, 'values');
   if(!empty($values)) {
     $defaults['is_percentagepricesetfield'] = 1;
     foreach ($values as $name => $value) {
       $defaults['percentagepricesetfield_' . $name] = $value;
     }
   }
-  dsm($defaults, 'defaults');
   
   $form->setDefaults($defaults);
 }
@@ -302,11 +293,6 @@ function percentagepricesetfield_civicrm_preProcess($formName, &$form) {
     _percentagepricesetfield_preProcess_AdminPriceField($form);
   }
 
-}
-
-function _percentagepricesetfield_preProcess_AdminPriceField(&$form) {
-  dsm('FIXME: '. __FUNCTION__ . ' not running.'); return;
-  dsm($form, __FUNCTION__);
 }
 
 function percentagepricesetfield_civicrm_postProcess($formName, &$form) {
@@ -526,4 +512,13 @@ function percentagepricesetfield_civicrm_caseTypes(&$caseTypes) {
  */
 function percentagepricesetfield_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _percentagepricesetfield_civix_civicrm_alterSettingsFolders($metaDataFolders);
+}
+
+function percentagepricesetfield_civicrm_pageRun( &$page ) {
+  $tpl = CRM_Core_Smarty::singleton();
+  $tpl_vars =& $tpl->get_template_vars();
+  
+  // FIXME: find and use the real field ID instead of 37
+  $tpl_vars['priceField'][37]['html_type'] = 'Text';
+  $tpl_vars['priceField'][37]['html_type_display'] = 'Percentage';
 }
