@@ -93,18 +93,37 @@ function _percentagepricesetfield_apply_to_taxes($form) {
   return TRUE;
 }
 
-function _percentagepricesetfield_get_properties($form) {
-  // FIXME: IS this funtion ever called?
-  // FIXME: get actual properties, and use static caching
+function _percentagepricesetfield_get_values($field_id) {
+  static $ret = array();
+  if (!array_key_exists($field_id, $ret)) {
+    $values = array();
+    if (!$field_id) {
+      return $values;
+    }
 
-  // - configurable values for a percentage field:
-  //  - Checkbox label (e.g., Please add 4% to my donation amount to cover credit-card processing fees.)
-  //  - checkbox help text (e.g., "This helps us a lot, thank you!")
-  //  - line item label (e.g., "4% extra for credit card fees")
-  //  - percentage (e.g., 4.0)
-  return array(
-    'checkbox_label',
-  );
+    $valid_fields = _percentagepricesetfield_get_valid_fields();
+    $field_names = array_keys($valid_fields);
+    $fields = implode(',', $field_names);
+    $query = "
+      SELECT $fields
+      FROM civicrm_percentagepricesetfield
+      WHERE
+        field_id = %1
+    ";
+    $params = array(
+      1 => array($field_id, 'Integer'),
+    );
+    $dao = CRM_Core_DAO::executeQuery($query, $params);
+    $dao->fetch();
+    if ($dao->N) {
+      foreach ($field_names as $field_name) {
+        $values[$field_name] = $dao->$field_name;
+      }
+    }
+
+    $ret[$field_id] = $values;
+  }
+  return $ret[$field_id];
 }
 
 function _percentagepricesetfield_calculate_label($form) {
@@ -122,7 +141,7 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
 //  dsm($formName);
   switch ($formName) {
     case 'CRM_Price_Form_Field':
-      _percentagepricesetfield_buildForm_PriceFormField($form);
+      _percentagepricesetfield_buildForm_AdminPriceField($form);
       break;
 
     case 'CRM_Event_Form_Registration_Register':
@@ -165,22 +184,47 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
   }
 }
 
-function _percentagepricesetfield_buildForm_PriceFormField(&$form) {
+function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
+  dsm($form, 'form before modification in '. __FUNCTION__);
+  if (
+    $form->_flagSubmitted
+    && !$form->_submitValues['fid']
+    && $form->_submitValues['html_type'] == 'CheckBox'
+    && $form->_submitValues['is_percentagepricesetfield']
+  ) {
+    // Auto-create the list of options to have a single option.
+    $form->_submitValues['option_label'] = array(1 => 'THIS STRING IS A MEANINGLESS PLACEHOLDER');
+    $form->_submitValues['option_amount'] = array(1 => 1);
+    $form->_submitValues['option_financial_type_id'] = array(1 => $form->_submitValues['percentagepricesetfield_financial_type_id']);
+    $form->_submitValues['option_status'] = array(1 => 1);
+    for ($i = 2; $i <= 15; $i++) {
+      $form->_submitValues['option_label'][$i] = '';
+      $form->_submitValues['option_amount'][$i] = '';
+      $form->_submitValues['option_financial_type_id'][$i] = '';
+      $form->_submitValues['option_status'][$i] = '';
+    }
+    dsm($form, 'form after modification in '. __FUNCTION__);
+  }
+
+
+
   // FIXME: TODO:
   // - configurable values for a percentage field:
-  //  - Checkbox label (e.g., Please add 4% to my donation amount to cover credit-card processing fees.)
-  //  - checkbox help text (e.g., "This helps us a lot, thank you!")
-  //  - line item label (e.g., "4% extra for credit card fees")
-  //  - percentage (e.g., 4.0)
+  //  - Provided: Checkbox label (e.g., Please add 4% to my donation amount to cover credit-card processing fees.)
+  //  - Provided: checkbox help text (e.g., "This helps us a lot, thank you!")
+  //  - Custom: line item label (e.g., "4% extra for credit card fees")
+  //  - Custom: percentage (e.g., 4.0)
   //
 
-  dsm('FIXME: '. __FUNCTION__ . ' not running.'); return;
+//  dsm('FIXME: '. __FUNCTION__ . ' not running.'); return;
 
 
   // Add custom JavaScript to override option_html_type() function
   $resource = CRM_Core_Resources::singleton();
-  $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/percentagepricesetfield.js', 100, 'page-footer');
+  $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/admin_price_field.js', 100, 'page-footer');
 
+  // FIXME: this is no longer needed:
+  /*
   // Remove the CRM_Price_Form_Field::formRule form rule. We'll call it ourselves
   // in our own form rule.
   foreach ($form->_formRules as $key => &$rule) {
@@ -192,37 +236,189 @@ function _percentagepricesetfield_buildForm_PriceFormField(&$form) {
   }
   // Add our own form rule processor.
   $form->addFormRule('_percentagepricesetfield_validate_field', $form);
+   *
+   */
 
-  $settings = array(
-    'price_label' => $form->_elements[$form->_elementIndex['price']]->_label,
+  // Add our own fields to this form.
+  $form->addElement('checkbox', 'is_percentagepricesetfield', ts('Field calculates "Automatic Additional Percentage"'));
+  $form->addElement('text', 'percentagepricesetfield_line_item_label', ts('Short label for line item'));
+  $form->addElement('text', 'percentagepricesetfield_percentage', ts('Percentage'));
+  $tpl = CRM_Core_Smarty::singleton();
+  $bhfe = $tpl->get_template_vars('beginHookFormElements');
+  if (!$bhfe) {
+    $bhfe = array();
+  }
+  $bhfe[] = 'is_percentagepricesetfield';
+  $bhfe[] = 'percentagepricesetfield_line_item_label';
+  $bhfe[] = 'percentagepricesetfield_percentage';
+  $form->assign('beginHookFormElements', $bhfe);
+
+  // Set default values for our fields.
+  _percentagepricesetfield_setDefaults_adminPriceField($form);
+
+  $vars = array();
+  $vars['bhfe_fields'] = array(
+    'is_percentagepricesetfield',
+    'percentagepricesetfield_line_item_label',
+    'percentagepricesetfield_percentage',
   );
-  $resource->addVars('percentagepricesetfield', $settings);
+
+  $field_id = $form->getVar('_fid');
+  if ($field_id) {
+    $values = _percentagepricesetfield_get_values($field_id);
+    $vars['values'] = $values;
+  }
+
+  $resource = CRM_Core_Resources::singleton();
+  $resource->addVars('percentagepricesetfield', $vars);
+}
+
+
+
+function _percentagepricesetfield_setDefaults_adminPriceField(&$form) {
+  $defaults = array();
+  
+  // FIXME: get actual values for this field.
+  $field_id = $form->getVar('_fid');
+  if (!$field_id) {
+    return;
+  }
+
+  $values = _percentagepricesetfield_get_values($field_id);
+  dsm($values, 'values');
+  if(!empty($values)) {
+    $defaults['is_percentagepricesetfield'] = 1;
+    foreach ($values as $name => $value) {
+      $defaults['percentagepricesetfield_' . $name] = $value;
+    }
+  }
+  dsm($defaults, 'defaults');
+  
+  $form->setDefaults($defaults);
+}
+
+function percentagepricesetfield_civicrm_preProcess($formName, &$form) {
+  if ($formName == 'CRM_Price_Form_Field') {
+    _percentagepricesetfield_preProcess_AdminPriceField($form);
+  }
+
+}
+
+function _percentagepricesetfield_preProcess_AdminPriceField(&$form) {
+  dsm('FIXME: '. __FUNCTION__ . ' not running.'); return;
+  dsm($form, __FUNCTION__);
 }
 
 function percentagepricesetfield_civicrm_postProcess($formName, &$form) {
   if ($formName == 'CRM_Price_Form_Field') {
-    _percentagepricesetfield_postProcess_PriceFormField($form);
+    _percentagepricesetfield_postProcess_AdminPriceField($form);
   }
 }
 
-function _percentagepricesetfield_postProcess_PriceFormField($form){
-  if (
-    !$form->getVar('_action')
-    || ($form->getVar('_action') & CRM_Core_Action::PREVIEW)
-    || ($form->getVar('_action') & CRM_Core_Action::ADD)
-    || ($form->getVar('_action') & CRM_Core_Action::UPDATE)
-  ) {
-    dsm($form, __FUNCTION__);
-  }
-}
-
-function _percentagepricesetfield_validate_field($fields, $files, $form) {
-  $fields_backup = $fields;
-  $fields['html_type'] = 'Text';
-  $errors = $form->formRule($fields, $files, $form);
-  $fields = $fields_backup;
+function _percentagepricesetfield_rectify_price_options($field_values) {
   
-  return empty($errors) ? TRUE : $errors;
+  $field_id = $field_values['field_id'];
+  // Delete any existing price options, and add only the one that should be there.
+  $dao = new CRM_Price_DAO_PriceFieldValue();
+  $dao->price_field_id = $field_id;
+  $dao->find(TRUE);
+  $dao->financial_type_id = $field_values['financial_type_id'];
+  $dao->save();
+
+}
+
+function _percentagepricesetfield_postProcess_AdminPriceField($form){
+  $values = $form->_submitValues;
+  $sid = $values['sid'];
+  $fid = $values['fid'];
+
+  if ($values['is_percentagepricesetfield']) {
+    $field_values = array(
+      'line_item_label' => $values['percentagepricesetfield_line_item_label'],
+      'percentage' => $values['percentagepricesetfield_percentage'],
+      'financial_type_id' => $values['percentagepricesetfield_financial_type_id'],
+      'field_id' => $fid,
+    );
+
+    if ($fid) {
+      _percentagepricesetfield_update_field($field_values);
+    }
+    else {
+      $bao = new CRM_Price_BAO_PriceField();
+      $bao->sid = $sid;
+      $bao->label = $values['label'];
+      $bao->find();
+      $bao->fetch();
+      $fid = $bao->id;
+      $field_values['field_id'] = $fid;
+      _percentagepricesetfield_create_field($field_values);
+    }
+    _percentagepricesetfield_rectify_price_options($field_values);
+  }
+  else {
+    if ($fid) {
+      _percentagepricesetfield_delete_field($fid);
+    }
+  }
+}
+
+function _percentagepricesetfield_get_valid_fields() {
+  // Define fields with valid data types (as in CRM_Utils_Type::validate()).
+  $valid_fields = array(
+    'field_id' => 'Integer',
+    'line_item_label' => 'String',
+    'percentage' => 'Float',
+    'financial_type_id' => 'Integer',
+  );
+  return $valid_fields;
+}
+
+function _percentagepricesetfield_create_field($field_values) {
+  $valid_fields = _percentagepricesetfield_get_valid_fields();
+
+  $fields = $values = $params = array();
+  $param_key = 1;
+  foreach ($valid_fields as $valid_field => $data_type) {
+    if (array_key_exists($valid_field, $field_values)) {
+      $fields[] = $valid_field;
+      $values[] = "%{$param_key}";
+      $params[$param_key] = array($field_values[$valid_field], $data_type);
+      $param_key++;
+    }
+  }
+  $query = "
+    INSERT INTO `civicrm_percentagepricesetfield` (" . implode(',', $fields) . ")
+    VALUES (" . implode(',', $values) . ")
+  ";
+  CRM_Core_DAO::executeQuery($query, $params);
+}
+
+function _percentagepricesetfield_update_field($field_values) {
+  $field_id = $field_values['field_id'];
+  $valid_fields = _percentagepricesetfield_get_valid_fields();
+
+  $updates = $params = array();
+  $param_key = 1;
+  unset($field_values['field_id']);
+  foreach ($valid_fields as $valid_field => $data_type) {
+    if (array_key_exists($valid_field, $field_values)) {
+      $updates[] = "$valid_field = %{$param_key}";
+      $params[$param_key] = array($field_values[$valid_field], $data_type);
+      $param_key++;
+    }
+  }
+  $params[$param_key] = array($field_id, 'Integer');
+  $query = "
+    UPdATE `civicrm_percentagepricesetfield` SET " . implode(',', $updates) . "
+    WHERE field_id = %{$param_key}
+  ";
+  dsm($query, 'query');
+  dsm($params, 'params');
+  CRM_Core_DAO::executeQuery($query, $params);
+}
+
+function _percentagepricesetfield_delete_field($fid) {
+  dsm('FIXME: '. __FUNCTION__ . ' not running.'); return;
 }
 
 /**
@@ -232,8 +428,8 @@ function _percentagepricesetfield_validate_field($fields, $files, $form) {
  */
 function percentagepricesetfield_civicrm_config(&$config) {
   _percentagepricesetfield_civix_civicrm_config($config);
-  $html_types =& CRM_Price_BAO_PriceField::htmlTypes();
-  $html_types['percentage'] = ts('Additional Percentage');
+//  $html_types =& CRM_Price_BAO_PriceField::htmlTypes();
+//  $html_types['percentage'] = ts('Additional Percentage');
 }
 
 /**
