@@ -1,9 +1,10 @@
 <?php
 
 
-/** FIXME: NOTES:
- * To get "additional percentage" into the "Input Field Type", use the buildForm hook.
- * To display "additional percentage"-type fields in the price set form, use the buildForm hook.
+/** FIXME: TODO:
+ * Admin UI
+ * Does it work with taxes? Yes.
+ * Does it work with cividiscount? Yes, if you install this extension after cividiscount.
  */
 
 
@@ -11,7 +12,8 @@
 require_once 'percentagepricesetfield.civix.php';
 
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
-//  return;
+  dsm(__FUNCTION__);
+//dsm(func_get_args(), __FUNCTION__);
   $field_id = _percentagepricesetfield_get_pergentage_field_id($form);
   if ($field_id) {
     if (!_percentagepricesetfield_is_displayForm($form)) {
@@ -23,7 +25,7 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
         foreach ($amount[$field_id]['options'] as $option_id => &$option) {
           // Determine whether "percentage" checkbox was checked.
           if ($form->_submitValues["price_{$field_id}"][$option_id]) {
-            $option['amount'] = _percentagepricesetfield_calculate_total($form);
+            $option['amount'] = _percentagepricesetfield_calculate_additional_amount($form);
             $option['label'] = _percentagepricesetfield_calculate_label($form);
           }
         }
@@ -49,9 +51,46 @@ function _percentagepricesetfield_get_pergentage_field_id($form) {
   return 17;
 }
 
-function _percentagepricesetfield_calculate_total($form) {
-  // FIXME: do actual math.
-  return 2222.23;
+function _percentagepricesetfield_calculate_additional_amount($form) {
+  static $run_once = FALSE;
+  if (!$run_once) {
+    $run_once = TRUE;
+
+    $field_id = _percentagepricesetfield_get_pergentage_field_id($form);
+    $base_total = 0;
+
+    $line_items = array();
+    $params = $form->_submitValues;
+    $fields = $form->_values['fee'];
+    unset($fields[$field_id]);
+
+    CRM_Price_BAO_PriceSet::processAmount($fields, $params, $line_items);
+
+    if (_percentagepricesetfield_apply_to_taxes($form)) {
+      // $params['amount'] holds the total with taxes, so this is easy.
+      $base_total = $params['amount'];
+    }
+    else {
+      // If we're not configured to apply the percentage to taxes, then apply it
+      // to each line item individually.
+      foreach ($line_items as $line_item) {
+        if ($line_item['price_field_id'] != $field_id) {
+          $base_total += $line_item['line_total'];
+        }
+      }
+    }
+    
+    $percentage = _percentagepricesetfield_get_percentage($form);
+    $additional_amount = round(($base_total * $percentage / 100), 2);
+
+    return $additional_amount;
+  }
+}
+
+function _percentagepricesetfield_apply_to_taxes($form) {
+  // FIXME: Actually check configuration for this field.
+  return FALSE;
+  return TRUE;
 }
 
 function _percentagepricesetfield_get_properties($form) {
@@ -70,7 +109,7 @@ function _percentagepricesetfield_get_properties($form) {
 
 function _percentagepricesetfield_calculate_label($form) {
   // FIXME: dynamically build string.
-  $label = ts('FIXME: %1 %', array(1 => _percentagepricesetfield_calculate_total($form)));
+  $label = ts('FIXME: %1 %', array(1 => _percentagepricesetfield_calculate_additional_amount($form)));
   return $label;
 }
 
@@ -80,6 +119,7 @@ function _percentagepricesetfield_get_percentage($form) {
 }
 
 function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
+//  dsm($formName);
   switch ($formName) {
     case 'CRM_Price_Form_Field':
       _percentagepricesetfield_buildForm_PriceFormField($form);
@@ -94,7 +134,7 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
 }
 
 function _percentagepricesetfield_buildForm_public_price_set_form($form) {
-  dsm($form);
+//  dsm($form);
   $field_id = _percentagepricesetfield_get_pergentage_field_id($form);
   if ($field_id) {
     if (array_key_exists("price_{$field_id}", $form->_elementIndex)) {
@@ -166,7 +206,14 @@ function percentagepricesetfield_civicrm_postProcess($formName, &$form) {
 }
 
 function _percentagepricesetfield_postProcess_PriceFormField($form){
-  dsm($form);
+  if (
+    !$form->getVar('_action')
+    || ($form->getVar('_action') & CRM_Core_Action::PREVIEW)
+    || ($form->getVar('_action') & CRM_Core_Action::ADD)
+    || ($form->getVar('_action') & CRM_Core_Action::UPDATE)
+  ) {
+    dsm($form, __FUNCTION__);
+  }
 }
 
 function _percentagepricesetfield_validate_field($fields, $files, $form) {
