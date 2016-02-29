@@ -386,7 +386,7 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
           // uses a custom format for this attribute, parsing it later in
           // JavaScript to auto-calculate the total (see
           // CRM/Price/Form/Calculate.tpl).
-          $element->_attributes['price'] = preg_replace('/(\["[0-9]+",")[0-9]+(\|.+)$/', '${1}0${2}', $element->_attributes['price']); // e.g., ["30","20||"]: change "20" to "0".
+          $element->_attributes['price'] = preg_replace('/(\["[^"]+",")[^|]+(\|.+)$/', '${1}0${2}', $element->_attributes['price']); // e.g., ["30","20||"]: change "20" to "0".
           $element_id = $field->_name . '_' . $element->_attributes['id'];
         }
         // Remove this field's label (we copied it to the checkbox itself a few lines
