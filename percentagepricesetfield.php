@@ -2,6 +2,8 @@
 
 // FIXME: TODO:
 // - limit to one (enabled) percentage field per price set.
+// - when editing an existing Text field, extra fields are needlessly added to the top of the edit form (see buildForm hook)
+// - in the "price set fields" list, disabled percentage fields show the "edit price options" link (they should not).
 //
 
 require_once 'percentagepricesetfield.civix.php';
@@ -20,7 +22,7 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
             // Determine whether "percentage" checkbox was checked.
             if ($form->_submitValues["price_{$field_id}"][$option_id]) {
               $option['amount'] = _percentagepricesetfield_calculate_additional_amount($form);
-              $option['label'] = '';
+              $option['label'] = ts('Thank you!');
             }
           }
         }
@@ -36,7 +38,6 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
  * @return Boolean TRUE if this is the actual form.
  */
 function _percentagepricesetfield_is_displayForm($form) {
-  // FIXME: probably better to use getVars('_action').
   $action = $form->controller->_actionName;
   return ($action[1] == 'display');
 
@@ -307,7 +308,7 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form){
   $sid = $values['sid'];
   $fid = $values['fid'];
 
-  if ($values['is_percentagepricesetfield']) {
+  if (array_key_exists('is_percentagepricesetfield', $values) && $values['is_percentagepricesetfield']) {
     $field_values = array(
       'percentage' => $values['percentagepricesetfield_percentage'],
       'financial_type_id' => $values['percentagepricesetfield_financial_type_id'],
@@ -504,6 +505,21 @@ function percentagepricesetfield_civicrm_pageRun( &$page ) {
     ){
       $tpl_vars['priceField'][$field_id]['html_type'] = 'Text';
       $tpl_vars['priceField'][$field_id]['html_type_display'] = 'Percentage';
+    }
+  }
+}
+
+function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
+  if ($formName == 'CRM_Price_Form_Field') {
+    if (!$fields['fid']) {
+      // If there's no fid, then this is a new field. If it's set as is_percentagepricesetfield,
+      // make sure there are no others already (enabled) in this fieldset.
+      if (array_key_exists('is_percentagepricesetfield', $fields) && $fields['is_percentagepricesetfield']) {
+        $field_id = _percentagepricesetfield_get_pergentage_field_id($fields['sid']);
+        if ($field_id) {
+          $errors['is_percentagepricesetfield'] = ts('This price set already has a percentage field. Please disable or delete that field before creating a new one.');
+        }
+      }
     }
   }
 }
