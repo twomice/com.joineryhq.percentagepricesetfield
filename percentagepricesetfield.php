@@ -10,7 +10,7 @@ require_once 'percentagepricesetfield.civix.php';
 
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
   if ($form->_priceSetId) {
-    $field_id = _percentagepricesetfield_get_pergentage_field_id($form->_priceSetId);
+    $field_id = array_shift(_percentagepricesetfield_get_percentage_field_ids($form->_priceSetId));
     if ($field_id) {
       if (!_percentagepricesetfield_is_displayForm($form)) {
         // If this is the confirmation page, adjust the line item label.
@@ -43,14 +43,18 @@ function _percentagepricesetfield_is_displayForm($form) {
 
 }
 
-function _percentagepricesetfield_get_pergentage_field_id($price_set_id) {
+function _percentagepricesetfield_get_percentage_field_ids($price_set_id, $limit_enabled = TRUE) {
   $ret = array();
+  $key = serialize(func_get_args());
+  
   if (!array_key_exists($price_set_id, $ret)) {
-    $field_id = 0;
+    $field_ids = array();
 
     $dao = new CRM_Price_DAO_PriceField();
     $dao->price_set_id = $price_set_id;
-    $dao->is_active = 1;
+    if ($limit_enabled) {
+      $dao->is_active = 1;
+    }
     $dao->find();
     $ids = array();
     while($dao->fetch()) {
@@ -65,14 +69,13 @@ function _percentagepricesetfield_get_pergentage_field_id($price_set_id) {
         WHERE field_id IN (" . implode(',', $ids) . ")
       ";
       $dao = CRM_Core_DAO::executeQuery($query);
-      $dao->fetch();
-      if ($dao->N) {
-        $field_id = $dao->field_id;
+      while($dao->fetch()) {
+        $field_ids[] = $dao->field_id;
       }
     }
-    $ret[$price_set_id] = $field_id;
+    $ret[$key] = $field_ids;
   }
-  return $ret[$price_set_id];
+  return $ret[$key];
 }
 
 function _percentagepricesetfield_calculate_additional_amount($form) {
@@ -80,7 +83,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
   if (!$run_once) {
     $run_once = TRUE;
     if ($form->_priceSetId) {
-      $field_id = _percentagepricesetfield_get_pergentage_field_id($form->_priceSetId);
+      $field_ids = array_shift(_percentagepricesetfield_get_percentage_field_ids($form->_priceSetId));
       $base_total = 0;
 
       $line_items = array();
@@ -151,7 +154,7 @@ function _percentagepricesetfield_get_values($field_id) {
 }
 
 function _percentagepricesetfield_get_percentage($price_set_id) {
-  $field_id = _percentagepricesetfield_get_pergentage_field_id($price_set_id);
+  $field_id = array_shift(_percentagepricesetfield_get_percentage_field_ids($price_set_id));
   $values = _percentagepricesetfield_get_values($field_id);
   return $values['percentage'];
 }
@@ -172,7 +175,7 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
 
 function _percentagepricesetfield_buildForm_public_price_set_form($form) {
   if ($form->_priceSetId) {
-    $field_id = _percentagepricesetfield_get_pergentage_field_id($form->_priceSetId);
+    $field_id = array_shift(_percentagepricesetfield_get_percentage_field_ids($form->_priceSetId));
     if ($field_id) {
       if (array_key_exists("price_{$field_id}", $form->_elementIndex)) {
         $field =& $form->_elements[$form->_elementIndex["price_{$field_id}"]];
@@ -495,16 +498,20 @@ function percentagepricesetfield_civicrm_pageRun( &$page ) {
   $page_name = $page->getVar('_name');
   if ($page_name == 'CRM_Price_Page_Field') {
     $sid = $page->getVar('_sid');
-    $field_id = _percentagepricesetfield_get_pergentage_field_id($sid);
+
+    // FIXME: use all percentage field ids
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($sid, FALSE);
 
     $tpl = CRM_Core_Smarty::singleton();
     $tpl_vars =& $tpl->get_template_vars();
-    if (
-      array_key_exists('priceField', $tpl_vars)
-      && array_key_exists($field_id, $tpl_vars['priceField'])
-    ){
-      $tpl_vars['priceField'][$field_id]['html_type'] = 'Text';
-      $tpl_vars['priceField'][$field_id]['html_type_display'] = 'Percentage';
+    foreach($field_ids as $field_id) {
+      if (
+        array_key_exists('priceField', $tpl_vars)
+        && array_key_exists($field_id, $tpl_vars['priceField'])
+      ){
+        $tpl_vars['priceField'][$field_id]['html_type'] = 'Text';
+        $tpl_vars['priceField'][$field_id]['html_type_display'] = 'Percentage';
+      }
     }
   }
 }
@@ -515,7 +522,7 @@ function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$fil
       // If there's no fid, then this is a new field. If it's set as is_percentagepricesetfield,
       // make sure there are no others already (enabled) in this fieldset.
       if (array_key_exists('is_percentagepricesetfield', $fields) && $fields['is_percentagepricesetfield']) {
-        $field_id = _percentagepricesetfield_get_pergentage_field_id($fields['sid']);
+        $field_id = array_shift(_percentagepricesetfield_get_percentage_field_ids($fields['sid']));
         if ($field_id) {
           $errors['is_percentagepricesetfield'] = ts('This price set already has a percentage field. Please disable or delete that field before creating a new one.');
         }
