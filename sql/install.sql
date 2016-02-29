@@ -1,5 +1,3 @@
--- --------------------------------------------------------
-
 --
 -- Table structure for table `civicrm_percentagepricesetfield`
 --
@@ -7,13 +5,12 @@
 CREATE TABLE IF NOT EXISTS `civicrm_percentagepricesetfield` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
   `field_id` int(10) unsigned NOT NULL COMMENT 'FK: civicrm_price_field.id',
+  `percentage` float NOT NULL COMMENT 'Percentage to apply',
+  `financial_type_id` int(11) NOT NULL COMMENT 'financial_type_id of the first option of the checkbox group',
+  `apply_to_taxes` tinyint(4) DEFAULT '1' COMMENT 'Should this percentage be applied on top of taxes',
   PRIMARY KEY (`id`),
   KEY `field_id` (`field_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Price set fields marked as "additional percentage" type.' AUTO_INCREMENT=1 ;
-
---
--- Constraints for dumped tables
---
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Price set fields marked as "additional percentage" type.' AUTO_INCREMENT=18 ;
 
 --
 -- Constraints for table `civicrm_percentagepricesetfield`
