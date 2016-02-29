@@ -1,12 +1,11 @@
 <?php
 
-// FIXME: TODO:
-
 require_once 'percentagepricesetfield.civix.php';
 
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
   if ($form->_priceSetId) {
-    $field_id = array_shift(_percentagepricesetfield_get_percentage_field_ids($form->_priceSetId));
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
+    $field_id = array_shift($field_ids);
     if ($field_id) {
       if (!_percentagepricesetfield_is_displayForm($form)) {
         // If this is the confirmation page, adjust the line item label.
@@ -36,7 +35,6 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
 function _percentagepricesetfield_is_displayForm($form) {
   $action = $form->controller->_actionName;
   return ($action[1] == 'display');
-
 }
 
 function _percentagepricesetfield_get_percentage_field_ids($price_set_id, $limit_enabled = TRUE) {
@@ -79,7 +77,8 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
   if (!$run_once) {
     $run_once = TRUE;
     if ($form->_priceSetId) {
-      $field_id = array_shift(_percentagepricesetfield_get_percentage_field_ids($form->_priceSetId));
+      $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
+      $field_id = array_shift($field_ids);
       $base_total = 0;
 
       $line_items = array();
@@ -149,7 +148,8 @@ function _percentagepricesetfield_get_values($field_id) {
 }
 
 function _percentagepricesetfield_get_percentage($price_set_id) {
-  $field_id = array_shift(_percentagepricesetfield_get_percentage_field_ids($price_set_id));
+  $field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id);
+  $field_id = array_shift($field_ids);
   $values = _percentagepricesetfield_get_values($field_id);
   return $values['percentage'];
 }
@@ -170,7 +170,8 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
 
 function _percentagepricesetfield_buildForm_public_price_set_form($form) {
   if ($form->_priceSetId) {
-    $field_id = array_shift(_percentagepricesetfield_get_percentage_field_ids($form->_priceSetId));
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
+    $field_id = array_shift($field_ids);
     if ($field_id) {
       if (array_key_exists("price_{$field_id}", $form->_elementIndex)) {
         $field =& $form->_elements[$form->_elementIndex["price_{$field_id}"]];
@@ -505,7 +506,6 @@ function percentagepricesetfield_civicrm_pageRun( &$page ) {
   if ($page_name == 'CRM_Price_Page_Field') {
     $sid = $page->getVar('_sid');
 
-    // FIXME: use all percentage field ids
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($sid, FALSE);
 
     $tpl = CRM_Core_Smarty::singleton();
@@ -528,7 +528,8 @@ function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$fil
       // If there's no fid, then this is a new field. If it's set as is_percentagepricesetfield,
       // make sure there are no others already (enabled) in this fieldset.
       if (array_key_exists('is_percentagepricesetfield', $fields) && $fields['is_percentagepricesetfield']) {
-        $field_id = array_shift(_percentagepricesetfield_get_percentage_field_ids($fields['sid']));
+        $field_ids = _percentagepricesetfield_get_percentage_field_ids($fields['sid']);
+        $field_id = array_shift($field_ids);
         if ($field_id) {
           $errors['is_percentagepricesetfield'] = ts('This price set already has a percentage field. Please disable or delete that field before creating a new one.');
         }
