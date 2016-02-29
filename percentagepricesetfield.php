@@ -495,8 +495,7 @@ function _percentagepricesetfield_setDefaults_adminPriceField(&$form) {
 
   $field_id = $form->getVar('_fid');
   if (!$field_id) {
-    // If it's an empty form to create a new field, set no values.
-    return;
+    $defaults['percentagepricesetfield_apply_to_taxes'] = 1;
   }
 
   $values = _percentagepricesetfield_get_values($field_id);
