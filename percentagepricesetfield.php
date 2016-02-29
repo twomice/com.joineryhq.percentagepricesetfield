@@ -1,9 +1,7 @@
 <?php
 
 // FIXME: TODO:
-// - limit to one (enabled) percentage field per price set.
 // - when editing an existing Text field, extra fields are needlessly added to the top of the edit form (see buildForm hook)
-// - in the "price set fields" list, disabled percentage fields show the "edit price options" link (they should not).
 //
 
 require_once 'percentagepricesetfield.civix.php';
@@ -207,6 +205,7 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
 }
 
 function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
+  
   if (
     $form->_flagSubmitted
     && !$form->_submitValues['fid']
@@ -227,44 +226,49 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     $form->_submitValues['is_display_amounts'] = 0;
   }
 
-  // Add custom JavaScript to override option_html_type() function
-  $resource = CRM_Core_Resources::singleton();
-  $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/admin_price_field.js', 100, 'page-footer');
-
-  // Add our own fields to this form.
-  $form->addElement('checkbox', 'is_percentagepricesetfield', ts('Field calculates "Automatic Additional Percentage"'));
-  $form->addElement('text', 'percentagepricesetfield_', ts('Short label for line item'));
-  $form->addElement('text', 'percentagepricesetfield_percentage', ts('Percentage'));
-  if ($form->getVar('_action') & CRM_Core_Action::UPDATE) {
-    $form->freeze('is_percentagepricesetfield');
-  }
-
-  $tpl = CRM_Core_Smarty::singleton();
-  $bhfe = $tpl->get_template_vars('beginHookFormElements');
-  if (!$bhfe) {
-    $bhfe = array();
-  }
-  $bhfe[] = 'is_percentagepricesetfield';
-  $bhfe[] = 'percentagepricesetfield_percentage';
-  $form->assign('beginHookFormElements', $bhfe);
-
-  // Set default values for our fields.
-  _percentagepricesetfield_setDefaults_adminPriceField($form);
-
-  $vars = array();
-  $vars['bhfe_fields'] = array(
-    'is_percentagepricesetfield',
-    'percentagepricesetfield_percentage',
-  );
-
   $field_id = $form->getVar('_fid');
-  if ($field_id) {
-    $values = _percentagepricesetfield_get_values($field_id);
-    $vars['values'] = $values;
-  }
+  $price_set_id = $form->getVar('_sid');
+  $percentage_field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id, FALSE);
+  if (!$field_id || in_array($field_id, $percentage_field_ids)) {
+    // Add custom JavaScript to override option_html_type() function
+    $resource = CRM_Core_Resources::singleton();
+    $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/admin_price_field.js', 100, 'page-footer');
 
-  $resource = CRM_Core_Resources::singleton();
-  $resource->addVars('percentagepricesetfield', $vars);
+    // Add our own fields to this form.
+    $form->addElement('checkbox', 'is_percentagepricesetfield', ts('Field calculates "Automatic Additional Percentage"'));
+    $form->addElement('text', 'percentagepricesetfield_', ts('Short label for line item'));
+    $form->addElement('text', 'percentagepricesetfield_percentage', ts('Percentage'));
+    if ($form->getVar('_action') & CRM_Core_Action::UPDATE) {
+      $form->freeze('is_percentagepricesetfield');
+    }
+
+    $tpl = CRM_Core_Smarty::singleton();
+    $bhfe = $tpl->get_template_vars('beginHookFormElements');
+    if (!$bhfe) {
+      $bhfe = array();
+    }
+    $bhfe[] = 'is_percentagepricesetfield';
+    $bhfe[] = 'percentagepricesetfield_percentage';
+    $form->assign('beginHookFormElements', $bhfe);
+
+    // Set default values for our fields.
+    _percentagepricesetfield_setDefaults_adminPriceField($form);
+
+    $vars = array();
+    $vars['bhfe_fields'] = array(
+      'is_percentagepricesetfield',
+      'percentagepricesetfield_percentage',
+    );
+
+    $field_id = $form->getVar('_fid');
+    if ($field_id) {
+      $values = _percentagepricesetfield_get_values($field_id);
+      $vars['values'] = $values;
+    }
+
+    $resource = CRM_Core_Resources::singleton();
+    $resource->addVars('percentagepricesetfield', $vars);
+  }
 }
 
 
