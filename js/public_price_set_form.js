@@ -1,12 +1,28 @@
+/**
+ * Custom JavaScript functions for user-facing forms that display price set
+ * fields (e.g., event registration forms, contribution forms).
+ */
 cj(function() {
   var totalElementSelector = '#pricevalue';
   var totalWithPercentageElementSelector = '#percentagepricesetfield_pricevalue';
   var monetarySymbol = '';
+
+  /**
+   * Update the total-plus-percentage display with the correct amount.
+   */
   var updateTotal = function() {
     cj(totalWithPercentageElementSelector).html(monetarySymbol + ' ' + calculateTotal());
   };
+
+  /**
+   * Calculate the correct total-with-percentage amount.
+   */
   var calculateTotal = function() {
     var finalTotal;
+    // Clean up formatted total number by removing non-numerical characters.
+    // FIXME: Move this to a new function that anticipates different decimal
+    // and thousands separators (e.g., uses 'seperator' variable here instead
+    // of literal '.') Consider: http://stackoverflow.com/a/20716046
     var regex = new RegExp('[^0-9.]', 'g');
     var baseTotal = cj(totalElementSelector).text().replace(regex, '').trim() * 1;
     if (cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
@@ -38,7 +54,6 @@ cj(function() {
 
   // Note the monetary symbol for later use.
   monetarySymbol = cj(totalElementSelector + ' b').html();
-
 
   // Add our custom event listener to update total including the percentage.
   cj("input,#priceset select,#priceset").each(function () {
