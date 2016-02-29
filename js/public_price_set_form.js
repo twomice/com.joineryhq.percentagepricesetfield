@@ -7,19 +7,19 @@ cj(function() {
   };
   var calculateTotal = function() {
     var finalTotal;
-    var regex = new RegExp('[^0-9.]', 'g')
+    var regex = new RegExp('[^0-9.]', 'g');
     var baseTotal = cj(totalElementSelector).text().replace(regex, '').trim() * 1;
     if (cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
-      var percentage = CRM.vars.percentagepricesetfield.percentage
-      var extra = (baseTotal*percentage/100)
+      var percentage = CRM.vars.percentagepricesetfield.percentage;
+      var extra = (baseTotal*percentage/100);
       var total = extra + baseTotal;
       finalTotal = Math.round(total*100)/100;
     }
     else {
-      var finalTotal = baseTotal
+      finalTotal = baseTotal;
     }
     return formatMoney(finalTotal, 2, seperator, thousandMarker);
-  }
+  };
 
   // Clone and hide the original 'pricesetTotal' div. We'll use the new one to
   // display the total-plus-percentage amount.
@@ -29,7 +29,7 @@ cj(function() {
   myTotal.attr('id', 'totalWithPercentage');
   myTotal.find('*').each(function(idx, el) {
     if (el.id) {
-      el.id = 'percentagepricesetfield_' + el.id
+      el.id = 'percentagepricesetfield_' + el.id;
     }
   });
   // Add the cloned div.
@@ -66,4 +66,4 @@ cj(function() {
     }
   });
   updateTotal();
-})
+});

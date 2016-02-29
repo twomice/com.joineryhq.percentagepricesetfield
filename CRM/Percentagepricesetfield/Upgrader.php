@@ -19,7 +19,7 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Percentagepricesetfield_U
    * Run an external SQL script when the module is uninstalled
    */
   public function uninstall() {
-   $this->executeSqlFile('sql/uninstall.sql');
+    $this->executeSqlFile('sql/uninstall.sql');
   }
 
   /**

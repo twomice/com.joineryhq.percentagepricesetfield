@@ -2,6 +2,9 @@
 
 require_once 'percentagepricesetfield.civix.php';
 
+/**
+ * Implements hook_civicrm_buildAmount().
+ */
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
   if ($form->_priceSetId) {
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
@@ -27,6 +30,160 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
 }
 
 /**
+ * Implements hook_civicrm_().
+ */
+function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
+  switch ($formName) {
+    case 'CRM_Price_Form_Field':
+      _percentagepricesetfield_buildForm_AdminPriceField($form);
+      break;
+
+    case 'CRM_Event_Form_Registration_Register':
+    case 'CRM_Contribute_Form_Contribution_Main':
+      _percentagepricesetfield_buildForm_public_price_set_form($form);
+      break;
+
+  }
+}
+
+function percentagepricesetfield_civicrm_postProcess($formName, &$form) {
+  if ($formName == 'CRM_Price_Form_Field') {
+    _percentagepricesetfield_postProcess_AdminPriceField($form);
+  }
+}
+
+/**
+ * Implements hook_civicrm_config().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config
+ */
+function percentagepricesetfield_civicrm_config(&$config) {
+  _percentagepricesetfield_civix_civicrm_config($config);
+}
+
+/**
+ * Implements hook_civicrm_xmlMenu().
+ */
+function percentagepricesetfield_civicrm_xmlMenu(&$files) {
+  _percentagepricesetfield_civix_civicrm_xmlMenu($files);
+}
+
+/**
+ * Implements hook_civicrm_install().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
+ */
+function percentagepricesetfield_civicrm_install() {
+  return _percentagepricesetfield_civix_civicrm_install();
+}
+
+/**
+ * Implements hook_civicrm_uninstall().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
+ */
+function percentagepricesetfield_civicrm_uninstall() {
+  return _percentagepricesetfield_civix_civicrm_uninstall();
+}
+
+/**
+ * Implements hook_civicrm_enable().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
+ */
+function percentagepricesetfield_civicrm_enable() {
+  return _percentagepricesetfield_civix_civicrm_enable();
+}
+
+/**
+ * Implements hook_civicrm_disable().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
+ */
+function percentagepricesetfield_civicrm_disable() {
+  return _percentagepricesetfield_civix_civicrm_disable();
+}
+
+/**
+ * Implements hook_civicrm_upgrade().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
+ */
+function percentagepricesetfield_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
+  return _percentagepricesetfield_civix_civicrm_upgrade($op, $queue);
+}
+
+/**
+ * Implements hook_civicrm_managed().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
+ */
+function percentagepricesetfield_civicrm_managed(&$entities) {
+  return _percentagepricesetfield_civix_civicrm_managed($entities);
+}
+
+/**
+ * Implements hook_civicrm_caseTypes().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
+ */
+function percentagepricesetfield_civicrm_caseTypes(&$caseTypes) {
+  _percentagepricesetfield_civix_civicrm_caseTypes($caseTypes);
+}
+
+/**
+ * Implements hook_civicrm_alterSettingsFolders().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders
+ */
+function percentagepricesetfield_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
+  _percentagepricesetfield_civix_civicrm_alterSettingsFolders($metaDataFolders);
+}
+
+/**
+ * Implements hook_civicrm_pageRun().
+ */
+function percentagepricesetfield_civicrm_pageRun(&$page) {
+  $page_name = $page->getVar('_name');
+  if ($page_name == 'CRM_Price_Page_Field') {
+    $sid = $page->getVar('_sid');
+
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($sid, FALSE);
+
+    $tpl = CRM_Core_Smarty::singleton();
+    $tpl_vars =& $tpl->get_template_vars();
+    foreach ($field_ids as $field_id) {
+      if (
+        array_key_exists('priceField', $tpl_vars)
+        && array_key_exists($field_id, $tpl_vars['priceField'])
+      ) {
+        $tpl_vars['priceField'][$field_id]['html_type'] = 'Text';
+        $tpl_vars['priceField'][$field_id]['html_type_display'] = 'Percentage';
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_civicrm_validateForm().
+ */
+function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
+  if ($formName == 'CRM_Price_Form_Field') {
+    if (!$fields['fid']) {
+      // If there's no fid, then this is a new field. If it's set as is_percentagepricesetfield,
+      // make sure there are no others already (enabled) in this fieldset.
+      if (array_key_exists('is_percentagepricesetfield', $fields) && $fields['is_percentagepricesetfield']) {
+        $field_ids = _percentagepricesetfield_get_percentage_field_ids($fields['sid']);
+        $field_id = array_shift($field_ids);
+        if ($field_id) {
+          $errors['is_percentagepricesetfield'] = ts('This price set already has a percentage field. Please disable or delete that field before creating a new one.');
+        }
+      }
+    }
+  }
+}
+
+/**
  * Determine whether or not the given form is the actual form (not, say, a
  * confirmation page).
  *
@@ -40,7 +197,7 @@ function _percentagepricesetfield_is_displayForm($form) {
 function _percentagepricesetfield_get_percentage_field_ids($price_set_id, $limit_enabled = TRUE) {
   $ret = array();
   $key = serialize(func_get_args());
-  
+
   if (!array_key_exists($price_set_id, $ret)) {
     $field_ids = array();
 
@@ -51,8 +208,8 @@ function _percentagepricesetfield_get_percentage_field_ids($price_set_id, $limit
     }
     $dao->find();
     $ids = array();
-    while($dao->fetch()) {
-      $ids[] = (int)$dao->id;
+    while ($dao->fetch()) {
+      $ids[] = (int) $dao->id;
     }
     unset($dao);
 
@@ -63,7 +220,7 @@ function _percentagepricesetfield_get_percentage_field_ids($price_set_id, $limit
         WHERE field_id IN (" . implode(',', $ids) . ")
       ";
       $dao = CRM_Core_DAO::executeQuery($query);
-      while($dao->fetch()) {
+      while ($dao->fetch()) {
         $field_ids[] = $dao->field_id;
       }
     }
@@ -111,7 +268,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
 
 function _percentagepricesetfield_apply_to_taxes($field_id) {
   $values = _percentagepricesetfield_get_values($field_id);
-  return (bool)$values['apply_to_taxes'];
+  return (bool) $values['apply_to_taxes'];
 }
 
 function _percentagepricesetfield_get_values($field_id) {
@@ -153,21 +310,6 @@ function _percentagepricesetfield_get_percentage($price_set_id) {
   $values = _percentagepricesetfield_get_values($field_id);
   return $values['percentage'];
 }
-
-function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
-  switch ($formName) {
-    case 'CRM_Price_Form_Field':
-      _percentagepricesetfield_buildForm_AdminPriceField($form);
-      break;
-
-    case 'CRM_Event_Form_Registration_Register':
-    case 'CRM_Contribute_Form_Contribution_Main':
-      _percentagepricesetfield_buildForm_public_price_set_form($form);
-      break;
-
-  }
-}
-
 function _percentagepricesetfield_buildForm_public_price_set_form($form) {
   if ($form->_priceSetId) {
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
@@ -203,7 +345,7 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
 }
 
 function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
-  
+
   if (
     $form->_flagSubmitted
     && !$form->_submitValues['fid']
@@ -272,35 +414,26 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   }
 }
 
-
-
 function _percentagepricesetfield_setDefaults_adminPriceField(&$form) {
   $defaults = array();
-  
+
   $field_id = $form->getVar('_fid');
   if (!$field_id) {
     return;
   }
 
   $values = _percentagepricesetfield_get_values($field_id);
-  if(!empty($values)) {
+  if (!empty($values)) {
     $defaults['is_percentagepricesetfield'] = 1;
     foreach ($values as $name => $value) {
       $defaults['percentagepricesetfield_' . $name] = $value;
     }
   }
-  
+
   $form->setDefaults($defaults);
 }
-
-function percentagepricesetfield_civicrm_postProcess($formName, &$form) {
-  if ($formName == 'CRM_Price_Form_Field') {
-    _percentagepricesetfield_postProcess_AdminPriceField($form);
-  }
-}
-
 function _percentagepricesetfield_rectify_price_options($field_values) {
-  
+
   $field_id = $field_values['field_id'];
   // Delete any existing price options, and add only the one that should be there.
   $dao = new CRM_Price_DAO_PriceFieldValue();
@@ -311,16 +444,16 @@ function _percentagepricesetfield_rectify_price_options($field_values) {
 
 }
 
-function _percentagepricesetfield_postProcess_AdminPriceField($form){
+function _percentagepricesetfield_postProcess_AdminPriceField($form) {
   $values = $form->_submitValues;
   $sid = $values['sid'];
   $fid = $values['fid'];
 
   if (array_key_exists('is_percentagepricesetfield', $values) && $values['is_percentagepricesetfield']) {
     $field_values = array(
-      'percentage' => (float)$values['percentagepricesetfield_percentage'],
-      'financial_type_id' => (int)$values['percentagepricesetfield_financial_type_id'],
-      'apply_to_taxes' => (int)$values['percentagepricesetfield_apply_to_taxes'],
+      'percentage' => (float) $values['percentagepricesetfield_percentage'],
+      'financial_type_id' => (int) $values['percentagepricesetfield_financial_type_id'],
+      'apply_to_taxes' => (int) $values['percentagepricesetfield_apply_to_taxes'],
       'field_id' => $fid,
     );
 
@@ -392,148 +525,4 @@ function _percentagepricesetfield_update_field($field_values) {
     WHERE field_id = %{$param_key}
   ";
   CRM_Core_DAO::executeQuery($query, $params);
-}
-
-/**
- * Implementation of hook_civicrm_config
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config
- */
-function percentagepricesetfield_civicrm_config(&$config) {
-  _percentagepricesetfield_civix_civicrm_config($config);
-//  $html_types =& CRM_Price_BAO_PriceField::htmlTypes();
-//  $html_types['percentage'] = ts('Additional Percentage');
-}
-
-/**
- * Implementation of hook_civicrm_xmlMenu
- *
- * @param $files array(string)
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_xmlMenu
- */
-function percentagepricesetfield_civicrm_xmlMenu(&$files) {
-  _percentagepricesetfield_civix_civicrm_xmlMenu($files);
-}
-
-/**
- * Implementation of hook_civicrm_install
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
- */
-function percentagepricesetfield_civicrm_install() {
-  return _percentagepricesetfield_civix_civicrm_install();
-}
-
-/**
- * Implementation of hook_civicrm_uninstall
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
- */
-function percentagepricesetfield_civicrm_uninstall() {
-  return _percentagepricesetfield_civix_civicrm_uninstall();
-}
-
-/**
- * Implementation of hook_civicrm_enable
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
- */
-function percentagepricesetfield_civicrm_enable() {
-  return _percentagepricesetfield_civix_civicrm_enable();
-}
-
-/**
- * Implementation of hook_civicrm_disable
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
- */
-function percentagepricesetfield_civicrm_disable() {
-  return _percentagepricesetfield_civix_civicrm_disable();
-}
-
-/**
- * Implementation of hook_civicrm_upgrade
- *
- * @param $op string, the type of operation being performed; 'check' or 'enqueue'
- * @param $queue CRM_Queue_Queue, (for 'enqueue') the modifiable list of pending up upgrade tasks
- *
- * @return mixed  based on op. for 'check', returns array(boolean) (TRUE if upgrades are pending)
- *                for 'enqueue', returns void
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
- */
-function percentagepricesetfield_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _percentagepricesetfield_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implementation of hook_civicrm_managed
- *
- * Generate a list of entities to create/deactivate/delete when this module
- * is installed, disabled, uninstalled.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
- */
-function percentagepricesetfield_civicrm_managed(&$entities) {
-  return _percentagepricesetfield_civix_civicrm_managed($entities);
-}
-
-/**
- * Implementation of hook_civicrm_caseTypes
- *
- * Generate a list of case-types
- *
- * Note: This hook only runs in CiviCRM 4.4+.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
- */
-function percentagepricesetfield_civicrm_caseTypes(&$caseTypes) {
-  _percentagepricesetfield_civix_civicrm_caseTypes($caseTypes);
-}
-
-/**
- * Implementation of hook_civicrm_alterSettingsFolders
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders
- */
-function percentagepricesetfield_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _percentagepricesetfield_civix_civicrm_alterSettingsFolders($metaDataFolders);
-}
-
-function percentagepricesetfield_civicrm_pageRun( &$page ) {
-  $page_name = $page->getVar('_name');
-  if ($page_name == 'CRM_Price_Page_Field') {
-    $sid = $page->getVar('_sid');
-
-    $field_ids = _percentagepricesetfield_get_percentage_field_ids($sid, FALSE);
-
-    $tpl = CRM_Core_Smarty::singleton();
-    $tpl_vars =& $tpl->get_template_vars();
-    foreach($field_ids as $field_id) {
-      if (
-        array_key_exists('priceField', $tpl_vars)
-        && array_key_exists($field_id, $tpl_vars['priceField'])
-      ){
-        $tpl_vars['priceField'][$field_id]['html_type'] = 'Text';
-        $tpl_vars['priceField'][$field_id]['html_type_display'] = 'Percentage';
-      }
-    }
-  }
-}
-
-function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
-  if ($formName == 'CRM_Price_Form_Field') {
-    if (!$fields['fid']) {
-      // If there's no fid, then this is a new field. If it's set as is_percentagepricesetfield,
-      // make sure there are no others already (enabled) in this fieldset.
-      if (array_key_exists('is_percentagepricesetfield', $fields) && $fields['is_percentagepricesetfield']) {
-        $field_ids = _percentagepricesetfield_get_percentage_field_ids($fields['sid']);
-        $field_id = array_shift($field_ids);
-        if ($field_id) {
-          $errors['is_percentagepricesetfield'] = ts('This price set already has a percentage field. Please disable or delete that field before creating a new one.');
-        }
-      }
-    }
-  }
 }
