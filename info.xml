@@ -2,7 +2,7 @@
 <extension key="com.joineryhq.percentagepricesetfield" type="module">
   <file>percentagepricesetfield</file>
   <name>Percentage Price Set Field</name>
-  <description>Provides an additional price set field type, "Automatic Percentage", which can add an additional amount to a transaction, as a configurable percentage of other selected price set options.</description>
+  <description>Provides options to add a "Percentage" price set field, which can add an additional amount to a transaction, as a configurable percentage of other selected price set options.</description>
   <license>GPL-3.0</license>
   <maintainer>
     <author>Allen Shaw</author>
