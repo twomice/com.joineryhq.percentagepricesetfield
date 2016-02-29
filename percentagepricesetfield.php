@@ -1,8 +1,6 @@
 <?php
 
 // FIXME: TODO:
-// - when editing an existing Text field, extra fields are needlessly added to the top of the edit form (see buildForm hook)
-//
 
 require_once 'percentagepricesetfield.civix.php';
 
@@ -81,7 +79,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
   if (!$run_once) {
     $run_once = TRUE;
     if ($form->_priceSetId) {
-      $field_ids = array_shift(_percentagepricesetfield_get_percentage_field_ids($form->_priceSetId));
+      $field_id = array_shift(_percentagepricesetfield_get_percentage_field_ids($form->_priceSetId));
       $base_total = 0;
 
       $line_items = array();
@@ -91,7 +89,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
 
       CRM_Price_BAO_PriceSet::processAmount($fields, $params, $line_items);
 
-      if (_percentagepricesetfield_apply_to_taxes($form)) {
+      if (_percentagepricesetfield_apply_to_taxes($field_id)) {
         // $params['amount'] holds the total with taxes, so this is easy.
         $base_total = $params['amount'];
       }
@@ -112,10 +110,9 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
   return $additional_amount;
 }
 
-function _percentagepricesetfield_apply_to_taxes($form) {
-  // FIXME: Actually check configuration for this field.
-  return FALSE;
-  return TRUE;
+function _percentagepricesetfield_apply_to_taxes($field_id) {
+  $values = _percentagepricesetfield_get_values($field_id);
+  return (bool)$values['apply_to_taxes'];
 }
 
 function _percentagepricesetfield_get_values($field_id) {
@@ -238,6 +235,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     $form->addElement('checkbox', 'is_percentagepricesetfield', ts('Field calculates "Automatic Additional Percentage"'));
     $form->addElement('text', 'percentagepricesetfield_', ts('Short label for line item'));
     $form->addElement('text', 'percentagepricesetfield_percentage', ts('Percentage'));
+    $form->addElement('checkbox', 'percentagepricesetfield_apply_to_taxes', ts('Apply percentage to tax amounts'));
     if ($form->getVar('_action') & CRM_Core_Action::UPDATE) {
       $form->freeze('is_percentagepricesetfield');
     }
@@ -249,6 +247,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     }
     $bhfe[] = 'is_percentagepricesetfield';
     $bhfe[] = 'percentagepricesetfield_percentage';
+    $bhfe[] = 'percentagepricesetfield_apply_to_taxes';
     $form->assign('beginHookFormElements', $bhfe);
 
     // Set default values for our fields.
@@ -258,6 +257,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     $vars['bhfe_fields'] = array(
       'is_percentagepricesetfield',
       'percentagepricesetfield_percentage',
+      'percentagepricesetfield_apply_to_taxes',
     );
 
     $field_id = $form->getVar('_fid');
@@ -317,8 +317,9 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form){
 
   if (array_key_exists('is_percentagepricesetfield', $values) && $values['is_percentagepricesetfield']) {
     $field_values = array(
-      'percentage' => $values['percentagepricesetfield_percentage'],
-      'financial_type_id' => $values['percentagepricesetfield_financial_type_id'],
+      'percentage' => (float)$values['percentagepricesetfield_percentage'],
+      'financial_type_id' => (int)$values['percentagepricesetfield_financial_type_id'],
+      'apply_to_taxes' => (int)$values['percentagepricesetfield_apply_to_taxes'],
       'field_id' => $fid,
     );
 
@@ -345,6 +346,7 @@ function _percentagepricesetfield_get_valid_fields() {
     'field_id' => 'Integer',
     'percentage' => 'Float',
     'financial_type_id' => 'Integer',
+    'apply_to_taxes' => 'Boolean',
   );
   return $valid_fields;
 }

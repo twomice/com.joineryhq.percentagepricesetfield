@@ -21,7 +21,6 @@ cj(function($) {
 
   var is_percentagepricesetfield_change = function() {
     var html_type_name = cj('#html_type').val();
-    console.log('html_type_name', html_type_name)
     if (html_type_name != 'CheckBox') {
       return;
     }
@@ -59,7 +58,6 @@ cj(function($) {
   cj('input#is_percentagepricesetfield').closest('table').attr('id', 'bfhe-table');
   for (i in CRM.vars.percentagepricesetfield.bhfe_fields) {
     var field_id = CRM.vars.percentagepricesetfield.bhfe_fields[i]
-    console.log('field_id', field_id)
     if (field_id == 'is_percentagepricesetfield') {
       tbodyClassName = 'percentagepricesetfield_main'
     }

@@ -1,26 +1,18 @@
 cj(function() {
-  console.log("I'm here too!");
-  
   var totalElementSelector = '#pricevalue';
   var totalWithPercentageElementSelector = '#percentagepricesetfield_pricevalue';
   var monetarySymbol = '';
   var updateTotal = function() {
-    console.log('totalWithPercentageElementSelector', totalWithPercentageElementSelector)
     cj(totalWithPercentageElementSelector).html(monetarySymbol + ' ' + calculateTotal());
   };
   var calculateTotal = function() {
     var finalTotal;
     var regex = new RegExp('[^0-9.]', 'g')
     var baseTotal = cj(totalElementSelector).text().replace(regex, '').trim() * 1;
-    console.log('stripped value', cj(totalElementSelector).text().replace(regex, ''));
-    console.log('baseTotal', baseTotal);
     if (cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
       var percentage = CRM.vars.percentagepricesetfield.percentage
-      console.log('percentage', percentage);
       var extra = (baseTotal*percentage/100)
       var total = extra + baseTotal;
-      console.log('extra', extra);
-      console.log('total', total);
       finalTotal = Math.round(total*100)/100;
     }
     else {
