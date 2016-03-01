@@ -1,4 +1,4 @@
-pricesetpercentagefield
+percentagepricesetfield
 =======================
 
 Provides options to add a "Percentage" price set field, which can add an
