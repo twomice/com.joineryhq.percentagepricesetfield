@@ -1,4 +1,10 @@
 --
+-- Drop table `civicrm_percentagepricesetfield`.
+--
+
+DROP TABLE IF EXISTS `civicrm_percentagepricesetfield`;
+
+--
 -- Table structure for table `civicrm_percentagepricesetfield`
 --
 
@@ -15,5 +21,7 @@ CREATE TABLE IF NOT EXISTS `civicrm_percentagepricesetfield` (
 --
 -- Constraints for table `civicrm_percentagepricesetfield`
 --
+
 ALTER TABLE `civicrm_percentagepricesetfield`
   ADD CONSTRAINT `civicrm_percentagepricesetfield_ibfk_1` FOREIGN KEY (`field_id`) REFERENCES `civicrm_price_field` (`id`) ON DELETE CASCADE;
+
