@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<menu>
+  <item>
+     <path>civicrm/percentagepricesetfield/convert_field</path>
+     <title>Percentage Price Field: Convert Field</title>
+     <desc>Convert the given price field to the given type.</desc>
+     <page_callback>CRM_Percentagepricesetfield::convertField</page_callback>
+     <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+</menu>

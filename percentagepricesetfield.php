@@ -223,6 +223,8 @@ function percentagepricesetfield_civicrm_pageRun(&$page) {
 function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
   if ($formName == 'CRM_Price_Form_Field') {
     if (!$fields['fid']) {
+      // FIXME: not only for new fields.
+      //
       // If there's no fid, then this is a new field. If it's set as is_percentagepricesetfield,
       // make sure there are no others already (enabled) in this fieldset.
       if (array_key_exists('is_percentagepricesetfield', $fields) && $fields['is_percentagepricesetfield']) {
@@ -455,6 +457,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   // to massage the submitted values.
   if (
     $form->_flagSubmitted
+    // FIXME: not only for new fields.
     && !$form->_submitValues['fid']
     && $form->_submitValues['html_type'] == 'CheckBox'
     && $form->_submitValues['is_percentagepricesetfield']
@@ -479,14 +482,15 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $field_id = $form->getVar('_fid');
   $price_set_id = $form->getVar('_sid');
   $percentage_field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id, FALSE);
+
+  // Add our custom JavaScript file.
+  $resource = CRM_Core_Resources::singleton();
+  $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/admin_price_field.js', 100, 'page-footer');
+  
   if (!$field_id || in_array($field_id, $percentage_field_ids)) {
     // If it's a blank form to create a new field, or if it's an update form to
     // edit an existing percentage field, we'll add options to handle percentage
     // fields.
-
-    // Add our custom JavaScript file.
-    $resource = CRM_Core_Resources::singleton();
-    $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/admin_price_field.js', 100, 'page-footer');
 
     // Add our own fields to this form.
     $form->addElement('checkbox', 'is_percentagepricesetfield', ts('Field calculates "Automatic Additional Percentage"'));
@@ -494,6 +498,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     $form->addElement('text', 'percentagepricesetfield_percentage', ts('Percentage'));
     $form->addElement('checkbox', 'percentagepricesetfield_apply_to_taxes', ts('Apply percentage to tax amounts'));
     if ($form->getVar('_action') & CRM_Core_Action::UPDATE) {
+    // FIXME: not only for new fields.
       $form->freeze('is_percentagepricesetfield');
     }
 
