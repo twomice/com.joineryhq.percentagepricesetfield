@@ -3,6 +3,45 @@
 require_once 'percentagepricesetfield.civix.php';
 
 /**
+ * Implements hook_civicrm_copy().
+ */
+function percentagepricesetfield_civicrm_copy($objectName, &$object) {
+  if (strtolower($objectName) == 'set') {
+    // Get the price set that this one was copied from, basd on the convention
+    // that copied price sets always have '__Copy_id_[N]_' appended
+    // to their name, where [N] is an integer (Note: it's often, but not always,
+    // the ID of the new price set, because N is calculated using max(id)+1, and
+    // max(id) is not always equivalent to the next serial ID.)
+    $original_price_set_name = preg_replace('/__Copy_id_[0-9]+_$/', '', $object->name);
+    $params = array(
+      'name' => $original_price_set_name,
+    );
+    CRM_Price_BAO_PriceSet::retrieve($params, $source_price_set);
+      // Get all percentage fields in the source prices set:
+    $source_percentage_field_ids = _percentagepricesetfield_get_percentage_field_ids($source_price_set['id'], FALSE);
+    foreach ($source_percentage_field_ids as $field_id) {
+      // Get the percentage price field values for this field.
+      $source_percentage_values = _percentagepricesetfield_get_values($field_id);
+      // Get the price field values for this field; we need its 'name' value.
+      $params = array(
+        'id' => $field_id,
+      );
+      CRM_Price_BAO_PriceField::retrieve($params, $source_price_field_values);
+      // Now find the like-named checkbox field in the new price set. We need its ID.
+      $params = array(
+        'price_set_id' => $object->id,
+        'name' => $source_price_field_values['name'],
+        'html_type' => 'CheckBox',
+      );
+      CRM_Price_BAO_PriceField::retrieve($params, $new_price_field_values);
+      // Use the source percentage values to mark the new field as a percentage field.
+      $source_percentage_values['field_id'] = $new_price_field_values['id'];
+      _percentagepricesetfield_create_field($source_percentage_values);
+    }
+  }
+}
+
+/**
  * Implements hook_civicrm_buildAmount().
  */
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
