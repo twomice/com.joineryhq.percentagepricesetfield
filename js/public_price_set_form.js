@@ -21,7 +21,7 @@ cj(function() {
     var finalTotal;
     // Clean up formatted total number by removing non-numerical characters.
     // FIXME: Move this to a new function that anticipates different decimal
-    // and thousands separators (e.g., uses 'seperator' variable here instead
+    // and thousands separators (e.g., uses 'separator' variable here instead
     // of literal '.') Consider: http://stackoverflow.com/a/20716046
     var regex = new RegExp('[^0-9.]', 'g');
     var baseTotal = cj(totalElementSelector).text().replace(regex, '').trim() * 1;
@@ -34,7 +34,17 @@ cj(function() {
     else {
       finalTotal = baseTotal;
     }
-    return formatMoney(finalTotal, 2, seperator, thousandMarker);
+
+    // Older CiviCRM versions used 'seperator' instead of 'separator'
+    var currency_separator
+    if (typeof separator === 'undefined') {
+      currency_separator = seperator
+    }
+    else {
+      currency_separator = separator
+    }
+
+    return formatMoney(finalTotal, 2, currency_separator, thousandMarker);
   };
 
   // Clone and hide the original 'pricesetTotal' div. We'll use the new one to
