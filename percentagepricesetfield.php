@@ -256,7 +256,8 @@ function _percentagepricesetfield_is_displayForm($form) {
 /**
  * Get the field_ids of all percentage fields in the given price set.
  *
- * @param Integer $price_set_id The ID of the price set to check.
+ * @param Integer $price_set_id The ID of the price set to check; if string 'ALL',
+ *   return all percentage price fields regardlesss of price_set.
  * @param Bool $limit_enabled If TRUE, return IDs of only enabled percentage
  *  fields; otherwise return IDs of all percentage fields.
  * @return Array of field ids
@@ -269,7 +270,9 @@ function _percentagepricesetfield_get_percentage_field_ids($price_set_id, $limit
     $field_ids = array();
 
     $dao = new CRM_Price_DAO_PriceField();
-    $dao->price_set_id = $price_set_id;
+    if ($price_set_id != 'ALL') {
+      $dao->price_set_id = $price_set_id;
+    }
     if ($limit_enabled) {
       $dao->is_active = 1;
     }
