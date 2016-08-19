@@ -2,21 +2,17 @@
  * Custom JavaScript functions for the form at /civicrm/admin/price/field.
  */
 cj(function($) {
-  // Override option_html_type() with our own version of it.
-  // FIXME: Is this still necessary?
-  percentagepricesetfield_option_html_type_original = option_html_type;
-  option_html_type = function(form) {
-    var html_type_name = cj('#html_type').val();
+  // Additional onChange event handler for the html_type field.
+  cj('#html_type').change(function(form) {
     // Call the original event listener.
-    percentagepricesetfield_option_html_type_original(form);
-    if (html_type_name == 'CheckBox') {
+    if (cj('#html_type').val() == 'CheckBox') {
       cj("#percentagepricesetfield-block").show();
     }
     else {
       cj("#percentagepricesetfield-block").hide();
     }
     is_percentagepricesetfield_change();
-  };
+  });
 
   /**
    * OnChange handler for is_percentagepricesetfield checkbox.
@@ -24,8 +20,7 @@ cj(function($) {
    * depending on whether the is_percentagepricesetfield checkbox is checked.
    */
   var is_percentagepricesetfield_change = function() {
-    var html_type_name = cj('#html_type').val();
-    if (html_type_name != 'CheckBox') {
+    if (cj('#html_type').val() != 'CheckBox') {
       return;
     }
 
@@ -50,7 +45,7 @@ cj(function($) {
   };
 
   // Move bhfe fields to before price-block. ("bhfe" or "BeforeHookFormElements"
-  // fields are added) in this extension's buildForm hook.
+  // fields are added in this extension's buildForm hook.)
   // First create a container to hold these fields, including two separate
   // tbody elements (so two groups of fields can be hidden/displayed independently).
   cj('div#price-block').before(
@@ -66,7 +61,7 @@ cj(function($) {
   cj('input#is_percentagepricesetfield').closest('table').attr('id', 'bfhe-table');
   // For each bhfe field, create a tr in the correct tbody, and move each field/label
   // into the correct td element.
-  if (CRM.vars && CRM.vars.percentagepricesetfield.bhfe_fields) {
+  if (CRM.vars.percentagepricesetfield && CRM.vars.percentagepricesetfield.bhfe_fields) {
     for (var i in CRM.vars.percentagepricesetfield.bhfe_fields) {
       var field_id = CRM.vars.percentagepricesetfield.bhfe_fields[i];
       if (field_id == 'is_percentagepricesetfield') {
@@ -85,9 +80,9 @@ cj(function($) {
       cj('div#percentagepricesetfield-block tr.field_' + field_id +' td.input').append(cj('input#' + field_id).closest('td').html());
     }
   }
-  // Remove the bhfe table. Using the append() method above has copied the fields
-  // rather than moving them, so we remove the entire table in order to remove
-  // the original fields.
+  // Remove the bhfe table. Because we used the append() method above, the fields
+  // were copied rather than moved, so we remove the entire table in order to
+  // remove the original fields.
   cj('table#bfhe-table').remove();
 
   // Clone financial_type_id field into percentagepricesetfield-block
@@ -111,37 +106,15 @@ cj(function($) {
   // Set the value for the financial_type_id (this is of course recorded with the
   // first checkbox option of the price field, but it won't be set in the field
   // we've cloned).
-  if (CRM.vars && CRM.vars.percentagepricesetfield.hasOwnProperty('values')) {
+  if (CRM.vars.percentagepricesetfield && CRM.vars.percentagepricesetfield.hasOwnProperty('values')) {
     cj('#percentagepricesetfield_financial_type_id').val(CRM.vars.percentagepricesetfield.values.financial_type_id);
   }
 
   // Add change handler for "is percentage" checkbox
   cj('input#is_percentagepricesetfield').change(is_percentagepricesetfield_change);
 
-  // Fire the change handler for the html_type field.
-  option_html_type();
-
-
-  if (cj('#html_type').val() == 'CheckBox' && cj('#html_type').attr('type') == 'hidden') {
-    var target_selector;
-    var button_label;
-    var button_action;
-    if (CRM.vars && CRM.vars.percentagepricesetfield) {
-      target_selector = '#is_percentagepricesetfield';
-      button_label = 'Convert to Normal Checkbox';
-      button_action = 'checkbox';
-    }
-    else {
-      target_selector = '#html_type';
-      button_label = 'Convert to Percentage';
-      button_action = 'percentage';
-    }
-
-
-
-    var button_html = '<a href="/civicrm/percentagepricesetfield/convert_field/?fid=' + cj('input[name="fid"]').val() + '&to=' + button_action + '">' + button_label + '</a>'
-    cj(target_selector).after('<br/>' + button_html);
-
-  }
+  // Fire the change handler for the html_type field. This adjusts form layout
+  // to properly support existing percentage priceset fields.
+  cj('#html_type').change();
 });
 
