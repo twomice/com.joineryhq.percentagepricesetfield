@@ -16,9 +16,15 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Percentagepricesetfield_U
   }
 
   /**
-   * Run an external SQL script when the module is uninstalled
+   * Remove custom table, and alert user if any fields remain abandoned.
    */
   public function uninstall() {
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids('ALL', FALSE);
+    if (!empty($field_ids)) {
+      $message = ts('There were existing percentage price fields; all percentage-related data for these fields has been permanently lost, and the fields will now behave as normal checkbox fields.');
+      CRM_Core_Session::setStatus($message, ts('Abandonded fields remaining'), 'alert', array('expires' => 0));
+    }
+
     $this->executeSqlFile('sql/uninstall.sql');
   }
 
@@ -30,10 +36,14 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Percentagepricesetfield_U
   }
 
   /**
-   * Example: Run a simple query when a module is disabled
-   *
+   * Alert user if any fields remain abandoned.
+   */
   public function disable() {
-    CRM_Core_DAO::executeQuery('UPDATE foo SET is_active = 0 WHERE bar = "whiz"');
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids('ALL', FALSE);
+    if (!empty($field_ids)) {
+      $message = ts('There are existing percentage price fields; all percentage-related data for these fields will be permanently lost if the Percentage Price Set Field extension is uninstalled.');
+      CRM_Core_Session::setStatus($message, ts('Abandonded fields remaining'), 'alert', array('expires' => 0));
+    }
   }
 
   /**
