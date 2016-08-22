@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS `civicrm_percentagepricesetfield` (
   `financial_type_id` int(11) NOT NULL COMMENT 'financial_type_id of the first option of the checkbox group',
   `apply_to_taxes` tinyint(4) DEFAULT '1' COMMENT 'Should this percentage be applied on top of taxes',
   PRIMARY KEY (`id`),
-  KEY `field_id` (`field_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Price set fields marked as "additional percentage" type.' AUTO_INCREMENT=18 ;
+  UNIQUE KEY `field_id` (`field_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Price set fields marked as "additional percentage" type.';
 
 --
 -- Constraints for table `civicrm_percentagepricesetfield`
