@@ -51,13 +51,36 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Percentagepricesetfield_U
    *
    * @return TRUE on success
    * @throws Exception
-   *
-  public function upgrade_4200() {
-    $this->ctx->log->info('Applying update 4200');
-    CRM_Core_DAO::executeQuery('UPDATE foo SET bar = "whiz"');
-    CRM_Core_DAO::executeQuery('DELETE FROM bang WHERE willy = wonka(2)');
+   */
+  public function upgrade_1100() {
+    $this->ctx->log->info('Applying update 1100 - cleaning up possible duplicates and adding unique key');
+
+    CRM_Core_Transaction::create()->run(function($tx) {
+      // Remove any duplicate rows per field, being sure to retain the one
+      // with the greatest ID (which should be the newest one).
+      $query = "
+        DELETE del.* FROM civicrm_percentagepricesetfield del
+        LEFT JOIN
+          (
+            SELECT MAX(id) AS id, field_id
+            FROM civicrm_percentagepricesetfield
+            GROUP BY field_id
+          ) AS keep
+          ON keep.id = del.id
+        WHERE keep.id IS NULL
+      ";
+      CRM_Core_DAO::executeQuery($query);
+
+      // Modify the index on field_id to be unique.
+      $query = "
+        ALTER TABLE civicrm_percentagepricesetfield DROP INDEX  `field_id`,
+        ADD UNIQUE field_id (field_id)
+      ";
+      CRM_Core_DAO::executeQuery($query);
+    });
+
     return TRUE;
-  } // */
+  }
 
 
   /**
