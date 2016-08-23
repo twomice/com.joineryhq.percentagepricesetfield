@@ -2,17 +2,25 @@
  * Custom JavaScript functions for the form at /civicrm/admin/price/field.
  */
 cj(function($) {
-  // Additional onChange event handler for the html_type field.
-  cj('#html_type').change(function(form) {
+//  /*
+  // Override option_html_type() with our own version of it.
+  // This is necessary because div#html_type has this function as an onChange
+  // event handler, and thus it may be called after any onChange event handler
+  // we add for that element. By replacing the function with our own definition
+  // of it, we can control the order of execution.
+  percentagepricesetfield_option_html_type_original = option_html_type;
+  option_html_type = function(form) {
+    var html_type_name = cj('#html_type').val();
     // Call the original event listener.
-    if (cj('#html_type').val() == 'CheckBox') {
+    percentagepricesetfield_option_html_type_original(form);
+    if (html_type_name == 'CheckBox') {
       cj("#percentagepricesetfield-block").show();
     }
     else {
       cj("#percentagepricesetfield-block").hide();
     }
     is_percentagepricesetfield_change();
-  });
+  };
 
   /**
    * OnChange handler for is_percentagepricesetfield checkbox.
