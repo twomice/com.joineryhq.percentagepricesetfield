@@ -4,13 +4,18 @@
   <name>Percentage Price Set Field</name>
   <description>Provides options to add a "Percentage" price set field, which can add an additional amount to a transaction, as a configurable percentage of other selected price set options.</description>
   <license>GPL-3.0</license>
+  <urls>
+    <url desc="Main Extension Page">https://github.com/twomice/com.joineryhq.percentagepricesetfield</url>
+    <url desc="Documentation">https://github.com/twomice/com.joineryhq.percentagepricesetfield</url>
+    <url desc="Support">http://joineryhq.com</url>
+  </urls>
   <maintainer>
     <author>Allen Shaw</author>
-    <email>allen@JoineryHQ.com</email>
+    <email>allen@hoineryhq.com</email>
   </maintainer>
   <releaseDate>2016-02-26</releaseDate>
   <version>1.1</version>
-  <develStage>alpha</develStage>
+  <develStage>stable</develStage>
   <compatibility>
     <ver>4.6</ver>
     <ver>4.7</ver>
