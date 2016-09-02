@@ -624,7 +624,7 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
       // (This works only because CiviCRM enforces a unique label-per-price-set
       // limitation.)
       $bao = new CRM_Price_BAO_PriceField();
-      $bao->sid = $price_set_id;
+      $bao->price_set_id = $price_set_id;
       $bao->label = $values['label'];
       $bao->find();
       $bao->fetch();
