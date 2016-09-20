@@ -819,6 +819,13 @@ function _percentagepricesetfield_get_content_pricesetid_function($content, $con
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_public';
   }
+  elseif (
+    $context == 'form'
+    && !empty($object->_priceSetId)
+    && $url_path == 'civicrm/event/register'
+  ) {
+    return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_public';
+  }
 }
 
 /**
@@ -850,6 +857,22 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contri
  * @return String The price set ID, if any; otherwise NULL.
  */
 function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_public($content, $context, $tplName, $object, $_get) {
+  return $object->_priceSetId;
+}
+
+/**
+ * Callback function to retrieve price set ID for a public-facing contribution
+ * form.
+ *
+ * @param String $content As in first argument to hook_civicrm_alterContent()
+ * @param String $context As in second argument to hook_civicrm_alterContent()
+ * @param String $tplName As in third argument to hook_civicrm_alterContent()
+ * @param Object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param Array $_get Contents of $_GET.
+ *
+ * @return String The price set ID, if any; otherwise NULL.
+ */
+function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_public($content, $context, $tplName, $object, $_get) {
   return $object->_priceSetId;
 }
 
