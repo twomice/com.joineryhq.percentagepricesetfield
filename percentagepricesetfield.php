@@ -17,11 +17,11 @@ function percentagepricesetfield_civicrm_copy($objectName, &$object) {
       'name' => $original_price_set_name,
     );
     CRM_Price_BAO_PriceSet::retrieve($params, $source_price_set);
-      // Get all percentage fields in the source prices set:
+    // Get all percentage fields in the source prices set:
     $source_percentage_field_ids = _percentagepricesetfield_get_percentage_field_ids($source_price_set['id'], FALSE);
     foreach ($source_percentage_field_ids as $field_id) {
       // Get the percentage price field values for this field.
-      $source_percentage_values = _percentagepricesetfield_get_values($field_id);
+      $source_percentage_values = _percentagepricesetfield_get_settings($field_id);
       // Get the price field values for this field; we need its 'name' value.
       $params = array(
         'id' => $field_id,
@@ -45,24 +45,23 @@ function percentagepricesetfield_civicrm_copy($objectName, &$object) {
  * Implements hook_civicrm_buildAmount().
  */
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
-  if ($form->_priceSetId) {
-    if (!_percentagepricesetfield_is_displayForm($form)) {
-      // If this is the confirmation page, we'll adjust the line item label, if
+  if ($pageType == 'contribution' && !empty($form->_priceSetId)) {
+
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
+    $field_id = array_pop($field_ids);
+    // This checkbox field should have exactly one option. We need that option
+    // value because the checkbox element's "id" attribute will be
+    // "price_[field_id]_[field_value]".
+    $field_value = _percentagepricesetfield_get_field_value($field_id);
+
+    if (!empty($form->_submitValues) && $form->_submitValues['price_'. $field_id][$field_value] == 1) {
+      // If this form is being submitted, we'll adjust the line item label, if
       // the price set contains a percentage field.
-      $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
-      $field_id = array_shift($field_ids);
-      if ($field_id) {
-        if (!empty($form->_submitValues) && array_key_exists("price_{$field_id}", $form->_submitValues)) {
-          // "Percentage" checkbox will have only one option, but ID is unknow to us,
-          // so use a foreach loop. If the one option for the percentage checkbox is
-          // checked, adjust the total and label for the checkbox.
-          foreach ($amount[$field_id]['options'] as $option_id => &$option) {
-            // Determine whether "percentage" checkbox was checked.
-            if ($form->_submitValues["price_{$field_id}"][$option_id]) {
-              $option['amount'] = _percentagepricesetfield_calculate_additional_amount($form);
-              $option['label'] = ts('Thank you!');
-            }
-          }
+      foreach ($amount[$field_id]['options'] as $option_id => &$option) {
+        // Determine whether "percentage" checkbox was checked.
+        if ($form->_submitValues["price_{$field_id}"][$option_id]) {
+          $option['amount'] = _percentagepricesetfield_calculate_additional_amount($form);
+          $option['label'] = ts('Thank you!');
         }
       }
     }
@@ -80,9 +79,13 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
 
     case 'CRM_Event_Form_Registration_Register':
     case 'CRM_Contribute_Form_Contribution_Main':
+    case 'CRM_Contribute_Form_Contribution':
       _percentagepricesetfield_buildForm_public_price_set_form($form);
       break;
 
+    case 'CRM_Price_Form_Preview':
+      // TODO: Would be nice to get this working.
+      break;
   }
 }
 
@@ -188,6 +191,42 @@ function percentagepricesetfield_civicrm_alterSettingsFolders(&$metaDataFolders 
 }
 
 /**
+ * Implements hook_civicrm_alterContent().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterContent
+ */
+function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplName, &$object) {
+  $args = func_get_args();
+  $args['_GET'] = $_GET;
+  if ($func = call_user_func_array('_percentagepricesetfield_get_content_pricesetid_function', $args)) {
+    $price_set_id = call_user_func_array($func, $args);
+  }
+  if (!empty($price_set_id)) {
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id);
+    $field_id = array_pop($field_ids);
+    
+    // This checkbox field should have exactly one option. We need that option
+    // value because the checkbox element's "id" attribute will be 
+    // "price_[field_id]_[field_value]".
+    $field_value = _percentagepricesetfield_get_field_value($field_id);
+    if (!$field_value) {
+      return;
+    }
+
+    // Insert our JavaScript code and variables.
+    $vars = array(
+      'percentage' => _percentagepricesetfield_get_percentage($price_set_id),
+      'percentage_checkbox_id' => "price_{$field_id}_{$field_value}",
+    );
+    $resource = CRM_Core_Resources::singleton();
+    $content .= '<script type="text/javascript">';
+    $content .= 'CRM.vars.percentagepricesetfield = '. json_encode($vars) .';';
+    $content .= file_get_contents($resource->getPath('com.joineryhq.percentagepricesetfield', 'js/public_price_set_form.js'));
+    $content .= '</script>';
+  }
+}
+
+/**
  * Implements hook_civicrm_pageRun().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_pageRun
@@ -240,17 +279,6 @@ function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$fil
       }
     }
   }
-}
-
-/**
- * Determine whether or not the given form is the actual form (not, say, a
- * confirmation page).
- *
- * @return Bool TRUE if this is the actual form.
- */
-function _percentagepricesetfield_is_displayForm($form) {
-  $action = $form->controller->_actionName;
-  return ($action[1] == 'display');
 }
 
 /**
@@ -315,11 +343,19 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
     if ($form->_priceSetId) {
       $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
       $field_id = array_shift($field_ids);
+
       $base_total = 0;
 
       $line_items = array();
       $params = $form->_submitValues;
-      $fields = $form->_values['fee'];
+      
+      if (!empty($form->_values['fee'])) {
+        $fields = $form->_values['fee'];
+      }
+      else {
+        $fields = $form->_priceSet['fields'];
+      }
+//      $fields = CRM_Price_BAO_PriceSet::getSetDetail($form->_priceSetId, FALSE, FALSE);
       unset($fields[$field_id]);
 
       CRM_Price_BAO_PriceSet::processAmount($fields, $params, $line_items);
@@ -355,7 +391,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
  * @return Bool
  */
 function _percentagepricesetfield_apply_to_taxes($field_id) {
-  $values = _percentagepricesetfield_get_values($field_id);
+  $values = _percentagepricesetfield_get_settings($field_id);
   return (bool) $values['apply_to_taxes'];
 }
 
@@ -365,7 +401,7 @@ function _percentagepricesetfield_apply_to_taxes($field_id) {
  * @param Integer $field_id The ID of the percentage field.
  * @return Array of setting values.
  */
-function _percentagepricesetfield_get_values($field_id) {
+function _percentagepricesetfield_get_settings($field_id) {
   static $ret = array();
   if (!array_key_exists($field_id, $ret)) {
     $values = array();
@@ -408,7 +444,7 @@ function _percentagepricesetfield_get_values($field_id) {
 function _percentagepricesetfield_get_percentage($price_set_id) {
   $field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id);
   $field_id = array_shift($field_ids);
-  $values = _percentagepricesetfield_get_values($field_id);
+  $values = _percentagepricesetfield_get_settings($field_id);
   return $values['percentage'];
 }
 
@@ -418,40 +454,51 @@ function _percentagepricesetfield_get_percentage($price_set_id) {
  *
  * @param Object $form
  */
-function _percentagepricesetfield_buildForm_public_price_set_form($form) {
-  if ($form->_priceSetId) {
+function _percentagepricesetfield_buildForm_public_price_set_form($form) {  
+  $field_id = _percentagepricesetfield_get_form_percentage_field_id($form);
+  if ($field_id) {
+    $field =& $form->_elements[$form->_elementIndex["price_{$field_id}"]];
+    // Get a reference to the last element in the $field->_elements array.
+    end($field->_elements);
+    $element =& $field->_elements[key($field->_elements)];
+    // Use the field label as the label for this checkbox element.
+    $element->_text = $field->_label;
+    // Set this checkbox's "price" to 0. This allows us to avoid having
+    // this checkbox affect that calculation, and we'll use our  own
+    // JavaScript to adjust the total based on the percentage. CiviCRM
+    // uses a custom format for this attribute, parsing it later in
+    // JavaScript to auto-calculate the total (see
+    // CRM/Price/Form/Calculate.tpl).
+    $element->_attributes['price'] = preg_replace('/(\["[^"]+",")[^|]+(\|.+)$/', '${1}0${2}', $element->_attributes['price']); // e.g., ["30","20||"]: change "20" to "0".
+    $element_id = $field->_name . '_' . $element->_attributes['id'];
+    
+    // Store $element_id in the form so we can easily access it elsewhere.
+    $form->_percentage_checkbox_id = $element_id;
+
+    // Remove this field's label (we copied it to the checkbox itself a few lines
+    // above.
+    $field->_label = '';
+  }
+}
+
+/**
+ * For a given form, get the HTML "id" attribute for the percentage price field,
+ * if any.
+ *
+ * @param Object $form An object extending CRM_Core_Form
+ * @return String "id" attribute, if any; otherwise FALSE.
+ */
+function _percentagepricesetfield_get_form_percentage_field_id($form) {
+  if (!empty($form->_priceSetId)) {
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
     $field_id = array_shift($field_ids);
     if ($field_id) {
       if (array_key_exists("price_{$field_id}", $form->_elementIndex)) {
-        $field =& $form->_elements[$form->_elementIndex["price_{$field_id}"]];
-        foreach ($field->_elements as &$element) {
-          // Use the field label as the label for this checkbox element.
-          $element->_text = $field->_label;
-          // Set this checkbox's "price" to 0. This allows us to avoid having
-          // this checkbox affect that calculation, and we'll use our  own
-          // JavaScript to adjust the total based on the percentage. CiviCRM
-          // uses a custom format for this attribute, parsing it later in
-          // JavaScript to auto-calculate the total (see
-          // CRM/Price/Form/Calculate.tpl).
-          $element->_attributes['price'] = preg_replace('/(\["[^"]+",")[^|]+(\|.+)$/', '${1}0${2}', $element->_attributes['price']); // e.g., ["30","20||"]: change "20" to "0".
-          $element_id = $field->_name . '_' . $element->_attributes['id'];
-        }
-        // Remove this field's label (we copied it to the checkbox itself a few lines
-        // above.
-        $field->_label = '';
-
-        // Set up our JavaScript file and variables.
-        $resource = CRM_Core_Resources::singleton();
-        $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/public_price_set_form.js', 100, 'page-footer');
-        $vars = array(
-          'percentage' => _percentagepricesetfield_get_percentage($form->_priceSetId),
-          'percentage_checkbox_id' => $element_id,
-        );
-        $resource->addVars('percentagepricesetfield', $vars);
+        return $field_id;
       }
     }
   }
+  return FALSE;
 }
 
 /**
@@ -519,7 +566,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   );
   $field_id = $form->getVar('_fid');
   if ($field_id) {
-    $values = _percentagepricesetfield_get_values($field_id);
+    $values = _percentagepricesetfield_get_settings($field_id);
     $vars['values'] = $values;
   }
   $resource->addVars('percentagepricesetfield', $vars);
@@ -539,7 +586,7 @@ function _percentagepricesetfield_setDefaults_adminPriceField(&$form) {
       $defaults['percentagepricesetfield_apply_to_taxes'] = 1;
     }
 
-    $values = _percentagepricesetfield_get_values($field_id);
+    $values = _percentagepricesetfield_get_settings($field_id);
     if (!empty($values)) {
       $defaults['is_percentagepricesetfield'] = 1;
       foreach ($values as $name => $value) {
@@ -741,4 +788,89 @@ function _percentagepricesetfield_update_field($field_values) {
     WHERE field_id = %{$param_key}
   ";
   CRM_Core_DAO::executeQuery($query, $params);
+}
+
+/**
+ * Determine the correct callback function to call in order to retrieve the
+ * price set ID of the relevant percentage price field.
+ *
+ * @param String $content As in first argument to hook_civicrm_alterContent()
+ * @param String $context As in second argument to hook_civicrm_alterContent()
+ * @param String $tplName As in third argument to hook_civicrm_alterContent()
+ * @param Object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param Array $_get Contents of $_GET.
+ *
+ * @return String The appropriate callback function name.
+ */
+function _percentagepricesetfield_get_content_pricesetid_function($content, $context, $tplName, $object, $_get) {
+  $url_path = implode('/', $object->urlPath);
+  if (
+    $context == 'page'
+    && !empty($_get['priceSetId'])
+    && $url_path == 'civicrm/contact/view/contribution'
+    && $_get['snippet'] == 4
+  ) {
+    return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_backoffice';
+  }
+  elseif (
+    $context == 'form'
+    && !empty($object->_priceSetId)
+    && $url_path == 'civicrm/contribute/transact'
+  ) {
+    return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_public';
+  }
+}
+
+/**
+ * Callback function to retrieve price set ID for a back-office contribution
+ * form.
+ *
+ * @param String $content As in first argument to hook_civicrm_alterContent()
+ * @param String $context As in second argument to hook_civicrm_alterContent()
+ * @param String $tplName As in third argument to hook_civicrm_alterContent()
+ * @param Object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param Array $_get Contents of $_GET.
+ *
+ * @return String The price set ID, if any; otherwise NULL.
+ */
+function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_backoffice($content, $context, $tplName, $object, $_get) {
+  return $_get['priceSetId'];
+}
+
+/**
+ * Callback function to retrieve price set ID for a public-facing contribution
+ * form.
+ *
+ * @param String $content As in first argument to hook_civicrm_alterContent()
+ * @param String $context As in second argument to hook_civicrm_alterContent()
+ * @param String $tplName As in third argument to hook_civicrm_alterContent()
+ * @param Object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param Array $_get Contents of $_GET.
+ *
+ * @return String The price set ID, if any; otherwise NULL.
+ */
+function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_public($content, $context, $tplName, $object, $_get) {
+  return $object->_priceSetId;
+}
+
+/**
+ * Get the option value for the (exactly) one option that should exist for a
+ * given percentage price set field.
+ *
+ * @param String Numeric $field_id System ID of the price set field.
+ * 
+ * @return String Numeric value of the checkbox option.
+ */
+function _percentagepricesetfield_get_field_value($field_id) {
+  try {
+    $result = civicrm_api3('PriceFieldValue', 'get', array(
+      'sequential' => 1,
+      'price_field_id' => $field_id,
+    ));
+  }
+  catch (CiviCRM_API3_Exception $e) {
+    CRM_Core_Error::debug_log_message('API Error in get PriceFieldValue: '. $e->getMessage());
+    return;
+  }
+  return $result['values'][0]['id'];
 }
