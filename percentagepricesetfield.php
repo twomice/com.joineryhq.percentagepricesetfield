@@ -45,8 +45,7 @@ function percentagepricesetfield_civicrm_copy($objectName, &$object) {
  * Implements hook_civicrm_buildAmount().
  */
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
-  if ($pageType == 'contribution' && !empty($form->_priceSetId)) {
-
+  if (!empty($form->_priceSetId)) {
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
     $field_id = array_pop($field_ids);
     // This checkbox field should have exactly one option. We need that option
@@ -355,7 +354,6 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
       else {
         $fields = $form->_priceSet['fields'];
       }
-//      $fields = CRM_Price_BAO_PriceSet::getSetDetail($form->_priceSetId, FALSE, FALSE);
       unset($fields[$field_id]);
 
       CRM_Price_BAO_PriceSet::processAmount($fields, $params, $line_items);
