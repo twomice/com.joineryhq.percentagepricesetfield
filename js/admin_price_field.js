@@ -69,7 +69,8 @@ cj(function($) {
   // For each bhfe field, create a tr in the correct tbody, and move each field/label
   // into the correct td element.
   if (CRM.vars.percentagepricesetfield && CRM.vars.percentagepricesetfield.bhfe_fields) {
-    for (var i in CRM.vars.percentagepricesetfield.bhfe_fields) {
+    var bhfe_length = CRM.vars.percentagepricesetfield.bhfe_fields.length
+    for (var i=0; i < bhfe_length; i++) {
       var field_id = CRM.vars.percentagepricesetfield.bhfe_fields[i];
       if (field_id == 'is_percentagepricesetfield') {
         tbodyClassName = 'percentagepricesetfield_main';
