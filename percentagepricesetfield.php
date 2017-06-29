@@ -542,6 +542,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $form->addElement('text', 'percentagepricesetfield_', ts('Short label for line item'));
   $form->addElement('text', 'percentagepricesetfield_percentage', ts('Percentage'));
   $form->addElement('checkbox', 'percentagepricesetfield_apply_to_taxes', ts('Apply percentage to tax amounts'));
+  $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', ts('Hide checkbox and force to "yes"'));
 
   $tpl = CRM_Core_Smarty::singleton();
   $bhfe = $tpl->get_template_vars('beginHookFormElements');
@@ -551,6 +552,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $bhfe[] = 'is_percentagepricesetfield';
   $bhfe[] = 'percentagepricesetfield_percentage';
   $bhfe[] = 'percentagepricesetfield_apply_to_taxes';
+  $bhfe[] = 'percentagepricesetfield_hide_and_force';
   $form->assign('beginHookFormElements', $bhfe);
 
   // Set default values for our fields.
@@ -558,11 +560,9 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
 
   // Pass some of these values to JavaScript.
   $vars = array();
-  $vars['bhfe_fields'] = array(
-    'is_percentagepricesetfield',
-    'percentagepricesetfield_percentage',
-    'percentagepricesetfield_apply_to_taxes',
-  );
+  $vars['description'] = array();
+  $vars['description']['percentagepricesetfield_hide_and_force'] = ts('This option will force the additional percentage to be applied, and hide the check box.');
+  $vars['bhfe_fields'] = $bhfe;
   $field_id = $form->getVar('_fid');
   if ($field_id) {
     $values = _percentagepricesetfield_get_settings($field_id);
@@ -658,6 +658,7 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
       'percentage' => (float) $values['percentagepricesetfield_percentage'],
       'financial_type_id' => (int) $values['percentagepricesetfield_financial_type_id'],
       'apply_to_taxes' => (int) $values['percentagepricesetfield_apply_to_taxes'],
+      'hide_and_force' => (int) $values['percentagepricesetfield_hide_and_force'],
       'field_id' => $field_id,
     );
 
@@ -705,6 +706,7 @@ function _percentagepricesetfield_get_valid_fields() {
     'percentage' => 'Float',
     'financial_type_id' => 'Integer',
     'apply_to_taxes' => 'Boolean',
+    'hide_and_force' => 'Boolean',
   );
   return $valid_fields;
 }

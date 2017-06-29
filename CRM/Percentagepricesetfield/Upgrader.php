@@ -47,7 +47,7 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Percentagepricesetfield_U
   }
 
   /**
-   * Example: Run a couple simple queries
+   * Clean up duplicates; add unique index.
    *
    * @return TRUE on success
    * @throws Exception
@@ -82,6 +82,17 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Percentagepricesetfield_U
     return TRUE;
   }
 
+  /**
+   * Clean up duplicates; add unique index.
+   *
+   * @return TRUE on success
+   * @throws Exception
+   */
+  public function upgrade_1101() {
+    $query = "ALTER TABLE  civicrm_percentagepricesetfield ADD  hide_and_force TINYINT NULL DEFAULT  '0' COMMENT 'Should this percentage be applied always, and the field hidden'";
+    CRM_Core_DAO::executeQuery($query);
+    return TRUE;
+  }
 
   /**
    * Example: Run an external SQL script
