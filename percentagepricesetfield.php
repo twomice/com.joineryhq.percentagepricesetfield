@@ -360,7 +360,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
       CRM_Price_BAO_PriceSet::processAmount($fields, $params, $line_items);
 
       // Calculate differently depending on "apply to taxes" setting.
-      if (_percentagepricesetfield_apply_to_taxes($field_id)) {
+      if (_percentagepricesetfield_get_setting_value($field_id, 'apply_to_taxes')) {
         // $params['amount'] holds the total with any taxes, so we can just use it.
         $base_total = $params['amount'];
       }
@@ -389,9 +389,9 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
  * @param Integer $field_id The ID of the percentage field.
  * @return Bool
  */
-function _percentagepricesetfield_apply_to_taxes($field_id) {
+function _percentagepricesetfield_get_setting_value($field_id, $setting_name) {
   $values = _percentagepricesetfield_get_settings($field_id);
-  return (bool) $values['apply_to_taxes'];
+  return $values[$setting_name];
 }
 
 /**
@@ -659,7 +659,7 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
       'percentage' => (float) $values['percentagepricesetfield_percentage'],
       'financial_type_id' => (int) $values['percentagepricesetfield_financial_type_id'],
       'apply_to_taxes' => (int) $values['percentagepricesetfield_apply_to_taxes'],
-      'hide_and_force' => (int) $values['percentagepricesetfield_hide_and_force'],
+      'hide_and_force' => (int) _percentagepricesetfield_get_setting_value($field_id, 'apply_to_taxes'),
       'field_id' => $field_id,
     );
 
