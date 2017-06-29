@@ -41,6 +41,7 @@ cj(function($) {
       cj(".crm-price-field-form-block-is_display_amounts").hide();
       cj("#percentagepricesetfield_financial_type").show();
       cj("div#percentagepricesetfield-block table tbody.percentagepricesetfield_details").show();
+      cj("div#percentagepricesetfield-block").addClass('percentagepricesetfield-highlight');
     }
     else {
       cj("#showoption").show();
@@ -48,6 +49,7 @@ cj(function($) {
       cj(".crm-price-field-form-block-is_display_amounts").show();
       cj("#percentagepricesetfield_financial_type").hide();
       cj("div#percentagepricesetfield-block table tbody.percentagepricesetfield_details").hide();
+      cj("div#percentagepricesetfield-block").removeClass('percentagepricesetfield-highlight');
     }
   };
 
@@ -86,6 +88,9 @@ cj(function($) {
       );
       cj('div#percentagepricesetfield-block tr.field_' + field_id +' td.label').append(cj('label[for="' + field_id +'"]').closest('td').html());
       cj('div#percentagepricesetfield-block tr.field_' + field_id +' td.input').append(cj('input#' + field_id).closest('td').html());
+      if (typeof CRM.vars.percentagepricesetfield.description[field_id] != 'undefined') {
+        cj('div#percentagepricesetfield-block tr.field_' + field_id +' td.input').append('<div class="description">'+ CRM.vars.percentagepricesetfield.description[field_id] +'</div>');
+      }
     }
   }
   // Remove the bhfe table. Because we used the append() method above, the fields

@@ -535,6 +535,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   // Add our custom JavaScript file.
   $resource = CRM_Core_Resources::singleton();
   $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/admin_price_field.js', 100, 'page-footer');
+  $resource->addStyleFile('com.joineryhq.percentagepricesetfield', 'css/admin_price_field.css', 100, 'page-header');
   
   // Add our own fields to this form, to handle percentage fields
   $form->addElement('checkbox', 'is_percentagepricesetfield', ts('Field calculates "Automatic Additional Percentage"'));
