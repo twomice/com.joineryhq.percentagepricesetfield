@@ -216,7 +216,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
     $vars = array(
       'percentage' => _percentagepricesetfield_get_percentage($price_set_id),
       'percentage_checkbox_id' => "price_{$field_id}_{$field_value}",
-      'hide_and_force' => "price_{$field_id}_{$field_value}",
+      'hide_and_force' => (int) _percentagepricesetfield_get_setting_value($field_id, 'hide_and_force'),
     );
     $resource = CRM_Core_Resources::singleton();
     $content .= '<script type="text/javascript">';
@@ -658,8 +658,8 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
     $field_values = array(
       'percentage' => (float) $values['percentagepricesetfield_percentage'],
       'financial_type_id' => (int) $values['percentagepricesetfield_financial_type_id'],
-      'apply_to_taxes' => (int) $values['percentagepricesetfield_apply_to_taxes'],
-      'hide_and_force' => (int) _percentagepricesetfield_get_setting_value($field_id, 'apply_to_taxes'),
+      'apply_to_taxes' => (int) !empty($values['percentagepricesetfield_apply_to_taxes']),
+      'hide_and_force' => (int) !empty($values['percentagepricesetfield_hide_and_force']),
       'field_id' => $field_id,
     );
 
