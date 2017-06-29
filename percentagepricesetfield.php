@@ -390,9 +390,41 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
  * @return Bool
  */
 function _percentagepricesetfield_get_setting_value($field_id, $setting_name) {
-  $values = _percentagepricesetfield_get_settings($field_id);
-  return $values[$setting_name];
+  $value = _percentagepricesetfield_get_setting_value_override($setting_name);
+  if ($value === NULL) {
+    $values = _percentagepricesetfield_get_settings($field_id);
+    $value = $values[$setting_name];
+  }
+  return $value;
 }
+
+/**
+ * Get the appropriate value from global settings for the given field setting
+ * name. Return any value that should override the given field setting, or NULL
+ * if there is no such value.
+ *
+ * @param type $setting_name
+ */
+function _percentagepricesetfield_get_setting_value_override($setting_name) {
+  switch ($setting_name) {
+    case 'hide_and_force':
+      // TODO: Refactor to something more re-usable.
+      $result = civicrm_api3('Setting', 'get', array(
+        'sequential' => 1,
+        'return' => array("percentagepricesetfield_hide_and_force_all"),
+      ));
+      $value = $result['values'][0]['percentagepricesetfield_hide_and_force_all'];
+      if ((bool)$value) {
+        return $value;
+      }
+      else {
+        return NULL;
+      }
+      break;
+
+  }
+}
+
 
 /**
  * Get the stored configuration settings for a given percentage field.
@@ -543,7 +575,19 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $form->addElement('text', 'percentagepricesetfield_', ts('Short label for line item'));
   $form->addElement('text', 'percentagepricesetfield_percentage', ts('Percentage'));
   $form->addElement('checkbox', 'percentagepricesetfield_apply_to_taxes', ts('Apply percentage to tax amounts'));
-  $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', ts('Hide checkbox and force to "yes"'));
+  $hide_and_force_element = $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', ts('Hide checkbox and force to "yes"'));
+  $hide_and_force_description = ts('This option will force the additional percentage to be applied, and hide the check box.');
+
+  // Support global "hide and force" config option; if it's TRUE, then freeze
+  // this field and adjust its description.
+  if (_percentagepricesetfield_get_setting_value_override('hide_and_force')) {
+    $hide_and_force_element->freeze();
+    $hide_and_force_description = ts('This setting overridden by the site-wide configuration at <a href="%1">%2</a>..', array(
+      1 => CRM_Utils_System::url('civicrm/admin/percentagepricesetfield/settings', 'reset=1'),
+      2 => ts('Percentage Price Set Field: Settings'),
+      'domain' => 'org.joineryhq.percentagepricesetfield',
+    ));
+  }
 
   $tpl = CRM_Core_Smarty::singleton();
   $bhfe = $tpl->get_template_vars('beginHookFormElements');
@@ -562,7 +606,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   // Pass some of these values to JavaScript.
   $vars = array();
   $vars['description'] = array();
-  $vars['description']['percentagepricesetfield_hide_and_force'] = ts('This option will force the additional percentage to be applied, and hide the check box.');
+  $vars['description']['percentagepricesetfield_hide_and_force'] = $hide_and_force_description;
   $vars['bhfe_fields'] = $bhfe;
   $field_id = $form->getVar('_fid');
   if ($field_id) {
@@ -898,4 +942,40 @@ function _percentagepricesetfield_get_field_value($field_id) {
     return;
   }
   return $result['values'][0]['id'];
+}
+
+/**
+ * Implements hook_civicrm_navigationMenu().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
+ */
+function percentagepricesetfield_civicrm_navigationMenu(&$menu) {
+  _percentagepricesetfield_get_max_navID($menu, $max_navID);
+  _percentagepricesetfield_civix_insert_navigation_menu($menu, 'Administer/Customize Data and Screens', array(
+    'label' => ts('Percentage Price Set Field', array('domain' => 'com.joineryhq.percentagepricesetfield')),
+    'name' => 'Percentage Price Set Field',
+    'url' => 'civicrm/admin/percentagepricesetfield/settings',
+    'permission' => 'administer CiviCRM',
+    'operator' => 'AND',
+    'separator' => NULL,
+    'navID' => ++$max_navID,
+  ));
+  _percentagepricesetfield_civix_navigationMenu($menu);
+}
+
+/**
+ * For an array of menu items, recursively get the value of the greatest navID
+ * attribute.
+ * @param <type> $menu
+ * @param <type> $max_navID
+ */
+function _percentagepricesetfield_get_max_navID(&$menu, &$max_navID = NULL) {
+  foreach ($menu as $id => $item) {
+    if (!empty($item['attributes']['navID'])) {
+      $max_navID = max($max_navID, $item['attributes']['navID']);
+    }
+    if (!empty($item['child'])) {
+      _percentagepricesetfield_get_max_navID($item['child'], $max_navID);
+    }
+  }
 }

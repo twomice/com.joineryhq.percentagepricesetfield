@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/admin/percentagepricesetfield/settings</path>
+    <page_callback>CRM_Percentagepricesetfield_Form_Settings</page_callback>
+    <title>Percentage Price Set Field: Settings</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+</menu>
