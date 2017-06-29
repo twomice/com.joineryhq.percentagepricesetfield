@@ -60,7 +60,9 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
         // Apply percentage if "percentage" checkbox was checked.
         if (!empty($form->_submitValues["price_{$field_id}"][$option_id])) {
           $option['amount'] = _percentagepricesetfield_calculate_additional_amount($form);
-          $option['label'] = ts('Thank you!');
+          $percent = _percentagepricesetfield_get_percentage($form->_priceSetId);
+          $option['label'] = $percent . '%';
+
         }
       }
     }
