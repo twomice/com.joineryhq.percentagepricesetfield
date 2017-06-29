@@ -46,19 +46,19 @@ function percentagepricesetfield_civicrm_copy($objectName, &$object) {
  */
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
   if (!empty($form->_priceSetId)) {
-    $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId, TRUE);
     $field_id = array_pop($field_ids);
     // This checkbox field should have exactly one option. We need that option
     // value because the checkbox element's "id" attribute will be
     // "price_[field_id]_[field_value]".
     $field_value = _percentagepricesetfield_get_field_value($field_id);
 
-    if (!empty($form->_submitValues) && $form->_submitValues['price_'. $field_id][$field_value] == 1) {
+    if (!empty($form->_submitValues)) {
       // If this form is being submitted, we'll adjust the line item label, if
       // the price set contains a percentage field.
       foreach ($amount[$field_id]['options'] as $option_id => &$option) {
-        // Determine whether "percentage" checkbox was checked.
-        if ($form->_submitValues["price_{$field_id}"][$option_id]) {
+        // Apply percentage if "percentage" checkbox was checked.
+        if (!empty($form->_submitValues["price_{$field_id}"][$option_id])) {
           $option['amount'] = _percentagepricesetfield_calculate_additional_amount($form);
           $option['label'] = ts('Thank you!');
         }
@@ -203,9 +203,9 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
   if (!empty($price_set_id)) {
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id);
     $field_id = array_pop($field_ids);
-    
+
     // This checkbox field should have exactly one option. We need that option
-    // value because the checkbox element's "id" attribute will be 
+    // value because the checkbox element's "id" attribute will be
     // "price_[field_id]_[field_value]".
     $field_value = _percentagepricesetfield_get_field_value($field_id);
     if (!$field_value) {
@@ -216,6 +216,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
     $vars = array(
       'percentage' => _percentagepricesetfield_get_percentage($price_set_id),
       'percentage_checkbox_id' => "price_{$field_id}_{$field_value}",
+      'hide_and_force' => "price_{$field_id}_{$field_value}",
     );
     $resource = CRM_Core_Resources::singleton();
     $content .= '<script type="text/javascript">';
@@ -347,7 +348,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
 
       $line_items = array();
       $params = $form->_submitValues;
-      
+
       if (!empty($form->_values['fee'])) {
         $fields = $form->_values['fee'];
       }
@@ -452,7 +453,7 @@ function _percentagepricesetfield_get_percentage($price_set_id) {
  *
  * @param Object $form
  */
-function _percentagepricesetfield_buildForm_public_price_set_form($form) {  
+function _percentagepricesetfield_buildForm_public_price_set_form($form) {
   $field_id = _percentagepricesetfield_get_form_percentage_field_id($form);
   if ($field_id) {
     $field =& $form->_elements[$form->_elementIndex["price_{$field_id}"]];
@@ -469,7 +470,7 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
     // CRM/Price/Form/Calculate.tpl).
     $element->_attributes['price'] = preg_replace('/(\["[^"]+",")[^|]+(\|.+)$/', '${1}0${2}', $element->_attributes['price']); // e.g., ["30","20||"]: change "20" to "0".
     $element_id = $field->_name . '_' . $element->_attributes['id'];
-    
+
     // Store $element_id in the form so we can easily access it elsewhere.
     $form->_percentage_checkbox_id = $element_id;
 
@@ -536,7 +537,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $resource = CRM_Core_Resources::singleton();
   $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/admin_price_field.js', 100, 'page-footer');
   $resource->addStyleFile('com.joineryhq.percentagepricesetfield', 'css/admin_price_field.css', 100, 'page-header');
-  
+
   // Add our own fields to this form, to handle percentage fields
   $form->addElement('checkbox', 'is_percentagepricesetfield', ts('Field calculates "Automatic Additional Percentage"'));
   $form->addElement('text', 'percentagepricesetfield_', ts('Short label for line item'));
@@ -882,7 +883,7 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_
  * given percentage price set field.
  *
  * @param String Numeric $field_id System ID of the price set field.
- * 
+ *
  * @return String Numeric value of the checkbox option.
  */
 function _percentagepricesetfield_get_field_value($field_id) {

@@ -7,6 +7,12 @@ cj(function() {
   var totalWithPercentageElementSelector = '#percentagepricesetfield_pricevalue';
   var monetarySymbol = '';
 
+  if (CRM.vars.percentagepricesetfield.hide_and_force) {
+    // Hide and force if so configured.
+    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', true);
+    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.price-set-row').hide();
+  }
+
   /**
    * Update the total-plus-percentage display with the correct amount.
    */
