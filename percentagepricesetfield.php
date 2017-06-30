@@ -572,25 +572,46 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/admin_price_field.js', 100, 'page-footer');
   $resource->addStyleFile('com.joineryhq.percentagepricesetfield', 'css/admin_price_field.css', 100, 'page-header');
 
+  // Define an array to hold field descriptions.
+  $descriptions = array();
+
   // Add our own fields to this form, to handle percentage fields
   $form->addElement('checkbox', 'is_percentagepricesetfield', ts('Field calculates "Automatic Additional Percentage"'));
   $form->addElement('text', 'percentagepricesetfield_', ts('Short label for line item'));
   $form->addElement('text', 'percentagepricesetfield_percentage', ts('Percentage'));
   $form->addElement('checkbox', 'percentagepricesetfield_apply_to_taxes', ts('Apply percentage to tax amounts'));
   $hide_and_force_element = $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', ts('Hide checkbox and force to "yes"'));
-  $hide_and_force_description = ts('This option will force the additional percentage to be applied, and hide the check box.');
+  $descriptions['percentagepricesetfield_hide_and_force'] = ts('This option will force the additional percentage to be applied, and hide the check box.');
 
   // Support global "hide and force" config option; if it's TRUE, then freeze
   // this field and adjust its description.
   if (_percentagepricesetfield_get_setting_value_override('hide_and_force')) {
     $hide_and_force_element->freeze();
-    $hide_and_force_description = ts('This setting overridden by the site-wide configuration at <a href="%1">%2</a>..', array(
+    $descriptions['percentagepricesetfield_hide_and_force'] = ts('This setting overridden by the site-wide configuration at <a href="%1">%2</a>..', array(
       1 => CRM_Utils_System::url('civicrm/admin/percentagepricesetfield/settings', 'reset=1'),
       2 => ts('Percentage Price Set Field: Settings'),
       'domain' => 'org.joineryhq.percentagepricesetfield',
     ));
   }
 
+  // Create a group of "disable for payment processors" with one checkbox per 
+  // payment processor, plus "pay later"
+  $payment_method_checkboxes = array(
+    $form->createElement('checkbox', '0', 0, ' ' . ts('Pay later (check)')),
+  );
+  $result = civicrm_api3('PaymentProcessor', 'get', array(
+    'sequential' => 1,
+    'is_test' => 0,
+    'return' => array("name"),
+    'options' => array('sort' => "name"),
+  ));
+  foreach ($result['values'] as $value) {
+    $payment_method_checkboxes[] = $form->createElement('checkbox', $value['id'], $value['id'], ' ' . $value['name']);
+  }
+  $form->addGroup($payment_method_checkboxes, 'percentagepricesetfield_disable_payment_methods', ts('Disable for payment methods'), '<br />');
+  $descriptions['percentagepricesetfield_disable_payment_methods'] = ts('Additional percentage option will be forced to "no" for any form submitted with the selected payment method(s).');
+
+  // Assign bhfe fields to the template.
   $tpl = CRM_Core_Smarty::singleton();
   $bhfe = $tpl->get_template_vars('beginHookFormElements');
   if (!$bhfe) {
@@ -600,6 +621,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $bhfe[] = 'percentagepricesetfield_percentage';
   $bhfe[] = 'percentagepricesetfield_apply_to_taxes';
   $bhfe[] = 'percentagepricesetfield_hide_and_force';
+  $bhfe[] = 'percentagepricesetfield_disable_payment_methods';
   $form->assign('beginHookFormElements', $bhfe);
 
   // Set default values for our fields.
@@ -607,8 +629,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
 
   // Pass some of these values to JavaScript.
   $vars = array();
-  $vars['description'] = array();
-  $vars['description']['percentagepricesetfield_hide_and_force'] = $hide_and_force_description;
+  $vars['descriptions'] = $descriptions;
   $vars['bhfe_fields'] = $bhfe;
   $field_id = $form->getVar('_fid');
   if ($field_id) {

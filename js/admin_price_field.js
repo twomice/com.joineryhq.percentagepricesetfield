@@ -67,36 +67,31 @@ cj(function($) {
   );
   // Add a unique ID to the table holding bhfe fields, so we can access it
   // directly later.
-  cj('input#is_percentagepricesetfield').closest('table').attr('id', 'bfhe-table');
-  // For each bhfe field, create a tr in the correct tbody, and move each field/label
-  // into the correct td element.
-  if (CRM.vars.percentagepricesetfield && CRM.vars.percentagepricesetfield.bhfe_fields) {
-    var bhfe_length = CRM.vars.percentagepricesetfield.bhfe_fields.length
-    for (var i=0; i < bhfe_length; i++) {
-      var field_id = CRM.vars.percentagepricesetfield.bhfe_fields[i];
-      if (field_id == 'is_percentagepricesetfield') {
-        tbodyClassName = 'percentagepricesetfield_main';
-      }
-      else {
-        tbodyClassName = 'percentagepricesetfield_details';
-      }
-      cj('div#percentagepricesetfield-block table tbody.' + tbodyClassName).append(
-        '<tr class="field_' + field_id +'">' +
-        '    <td class="label"></td>' +
-        '    <td class="input"></td>' +
-        '  </tr>'
-      );
-      cj('div#percentagepricesetfield-block tr.field_' + field_id +' td.label').append(cj('label[for="' + field_id +'"]').closest('td').html());
-      cj('div#percentagepricesetfield-block tr.field_' + field_id +' td.input').append(cj('input#' + field_id).closest('td').html());
-      if (typeof CRM.vars.percentagepricesetfield.description[field_id] != 'undefined') {
-        cj('div#percentagepricesetfield-block tr.field_' + field_id +' td.input').append('<div class="description">'+ CRM.vars.percentagepricesetfield.description[field_id] +'</div>');
-      }
-    }
+  cj('input#is_percentagepricesetfield').closest('table').attr('id', 'bhfe-table');
+  // Move the is_percentagepricesetfield bhfe field to its own tbody (there's
+  // a second tbody, for other options, which will be hidden, but we don't want
+  // to hide this master field).
+  cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_main').append(cj('table#bhfe-table input#is_percentagepricesetfield').closest('tr'));
+  // Move remaining bhfe fields into the second tbody.
+  cj('table#bhfe-table tr').each(function(idx, el) {
+    var el = cj(el);
+    cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_details').append(el)
+    var input_name = el.find('input').attr('name').split('[')[0];
+    el.attr('id', 'tr-' + input_name)
+    var cells = el.find('td')
+    cj(cells[0]).addClass('label');
+    cj(cells[1]).addClass('input');
+  });
+  cj('div#percentagepricesetfield-block td').removeClass('nowrap');
+
+  // Append any descriptions for bhfe fields.
+  for (var i in CRM.vars.percentagepricesetfield.descriptions) {
+    console.log(i)
+    cj('tr#tr-'+ i +' td.input').append('<div class="description">'+ CRM.vars.percentagepricesetfield.descriptions[i] +'</div>');
   }
-  // Remove the bhfe table. Because we used the append() method above, the fields
-  // were copied rather than moved, so we remove the entire table in order to
-  // remove the original fields.
-  cj('table#bfhe-table').remove();
+
+  // Remove the bhfe table. It should be empty at this point, but clean up anyway.
+  cj('table#bhfe-table').remove();
 
   // Clone financial_type_id field into percentagepricesetfield-block
   myFinancialTypeId = cj('select#financial_type_id').closest('tr').clone();
