@@ -89,7 +89,10 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Percentagepricesetfield_U
    * @throws Exception
    */
   public function upgrade_1101() {
-    $query = "ALTER TABLE  civicrm_percentagepricesetfield ADD  hide_and_force TINYINT NULL DEFAULT  '0' COMMENT 'Should this percentage be applied always, and the field hidden'";
+    $query = "ALTER TABLE  civicrm_percentagepricesetfield 
+      ADD hide_and_force TINYINT NULL DEFAULT  '0' COMMENT 'Should this percentage be applied always, and the field hidden',
+      ADD disable_payment_methods varchar(255) NOT NULL COMMENT 'Concatenated string of payment processor IDs'
+    ";
     CRM_Core_DAO::executeQuery($query);
     return TRUE;
   }

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS `civicrm_percentagepricesetfield` (
   `financial_type_id` int(11) NOT NULL COMMENT 'financial_type_id of the first option of the checkbox group',
   `apply_to_taxes` tinyint(4) DEFAULT '1' COMMENT 'Should this percentage be applied on top of taxes',
   `hide_and_force` tinyint(4) DEFAULT '1' COMMENT 'Should this percentage be applied always, and the field hidden',
+  `disable_payment_methods` varchar(255) NOT NULL COMMENT 'Concatenated string of payment processor IDs',
   PRIMARY KEY (`id`),
   UNIQUE KEY `field_id` (`field_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Price set fields marked as "additional percentage" type.';
