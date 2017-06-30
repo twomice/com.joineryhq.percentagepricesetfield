@@ -594,7 +594,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     ));
   }
 
-  // Create a group of "disable for payment processors" with one checkbox per 
+  // Create a group of "disable for payment processors" with one checkbox per
   // payment processor, plus "pay later"
   $payment_method_checkboxes = array(
     $form->createElement('checkbox', '0', 0, ' ' . ts('Pay later (check)')),
@@ -657,7 +657,7 @@ function _percentagepricesetfield_setDefaults_adminPriceField(&$form) {
     if (!empty($values)) {
       $defaults['is_percentagepricesetfield'] = 1;
       foreach ($values as $name => $value) {
-        $defaults['percentagepricesetfield_' . $name] = $value;
+        $defaults['percentagepricesetfield_' . $name] = _percentagepricesetfield_preprocess_default_value($name, $value);
       }
     }
 
@@ -727,6 +727,11 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
       'financial_type_id' => (int) $values['percentagepricesetfield_financial_type_id'],
       'apply_to_taxes' => (int) !empty($values['percentagepricesetfield_apply_to_taxes']),
       'hide_and_force' => (int) !empty($values['percentagepricesetfield_hide_and_force']),
+      'disable_payment_methods' => (
+        !empty($values['percentagepricesetfield_disable_payment_methods']) ?
+        CRM_Utils_Array::implodePadded(array_keys($values['percentagepricesetfield_disable_payment_methods'])) :
+        ''
+      ),
       'field_id' => $field_id,
     );
 
@@ -775,6 +780,7 @@ function _percentagepricesetfield_get_valid_fields() {
     'financial_type_id' => 'Integer',
     'apply_to_taxes' => 'Boolean',
     'hide_and_force' => 'Boolean',
+    'disable_payment_methods' => 'String',
   );
   return $valid_fields;
 }
@@ -1001,4 +1007,21 @@ function _percentagepricesetfield_get_max_navID(&$menu, &$max_navID = NULL) {
       _percentagepricesetfield_get_max_navID($item['child'], $max_navID);
     }
   }
+}
+
+/**
+ * Prep default values to work well with setDefaults(), if needed.
+ *
+ * @param string $name The name of the field.
+ * @param Mixed $value The field value.
+ *
+ * @return Mixed The altered field value.
+ */
+function _percentagepricesetfield_preprocess_default_value($name, $value) {
+  switch ($name) {
+    case 'disable_payment_methods':
+      $value = array_fill_keys((array) CRM_Utils_Array::explodePadded($value), '1');
+      break;
+  }
+  return $value;
 }
