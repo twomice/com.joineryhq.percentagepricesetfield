@@ -203,7 +203,11 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
     $price_set_id = call_user_func_array($func, $args);
   }
   if (!empty($price_set_id)) {
-    $field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id);
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id, TRUE);
+    if (empty($field_ids)) {
+      // No enabled percentage fields were found for this form. Nothing to do.
+      return;
+    }
     $field_id = array_pop($field_ids);
 
     // This checkbox field should have exactly one option. We need that option
@@ -524,7 +528,7 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
  */
 function _percentagepricesetfield_get_form_percentage_field_id($form) {
   if (!empty($form->_priceSetId)) {
-    $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId, TRUE);
     $field_id = array_shift($field_ids);
     if ($field_id) {
       if (array_key_exists("price_{$field_id}", $form->_elementIndex)) {
