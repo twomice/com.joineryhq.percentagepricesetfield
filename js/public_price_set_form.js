@@ -114,7 +114,6 @@ cj(function() {
   myTotal.find('*').each(function(idx, el) {
     if (el.id) {
       el.id = 'percentagepricesetfield_' + el.id;
-      console.log('el.id ', el.id);
     }
   });
   // Add the cloned div.
