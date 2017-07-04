@@ -219,6 +219,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
       'percentage' => _percentagepricesetfield_get_percentage($price_set_id),
       'percentage_checkbox_id' => "price_{$field_id}_{$field_value}",
       'hide_and_force' => (int) _percentagepricesetfield_get_setting_value($field_id, 'hide_and_force'),
+      'disable_payment_methods' => _percentagepricesetfield_get_setting_value($field_id, 'disable_payment_methods'),
     );
     $resource = CRM_Core_Resources::singleton();
     $content .= '<script type="text/javascript">';
@@ -458,7 +459,7 @@ function _percentagepricesetfield_get_settings($field_id) {
     $dao->fetch();
     if ($dao->N) {
       foreach ($field_names as $field_name) {
-        $values[$field_name] = $dao->$field_name;
+        $values[$field_name] = _percentagepricesetfield_preprocess_saved_value($field_name, $dao->$field_name);
       }
     }
 
@@ -581,7 +582,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $form->addElement('text', 'percentagepricesetfield_percentage', ts('Percentage'));
   $form->addElement('checkbox', 'percentagepricesetfield_apply_to_taxes', ts('Apply percentage to tax amounts'));
   $hide_and_force_element = $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', ts('Hide checkbox and force to "yes"'));
-  $descriptions['percentagepricesetfield_hide_and_force'] = ts('This option will force the additional percentage to be applied, and hide the check box.');
+  $descriptions['percentagepricesetfield_hide_and_force'] = ts('This option will force the additional percentage to be applied, and hide the check box, in front-end forms. (Additional percentage is always an option in back-office forms.)');
 
   // Support global "hide and force" config option; if it's TRUE, then freeze
   // this field and adjust its description.
@@ -609,7 +610,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     $payment_method_checkboxes[] = $form->createElement('checkbox', $value['id'], $value['id'], ' ' . $value['name']);
   }
   $form->addGroup($payment_method_checkboxes, 'percentagepricesetfield_disable_payment_methods', ts('Disable for payment methods'), '<br />');
-  $descriptions['percentagepricesetfield_disable_payment_methods'] = ts('Additional percentage option will be forced to "no" for any form submitted with the selected payment method(s).');
+  $descriptions['percentagepricesetfield_disable_payment_methods'] = ts('Additional percentage option will be forced to "no" in front-end forms submitted with the selected payment method(s). (Additional percentage is always an option in back-office forms.)');
 
   // Assign bhfe fields to the template.
   $tpl = CRM_Core_Smarty::singleton();
@@ -657,7 +658,7 @@ function _percentagepricesetfield_setDefaults_adminPriceField(&$form) {
     if (!empty($values)) {
       $defaults['is_percentagepricesetfield'] = 1;
       foreach ($values as $name => $value) {
-        $defaults['percentagepricesetfield_' . $name] = _percentagepricesetfield_preprocess_default_value($name, $value);
+        $defaults['percentagepricesetfield_' . $name] = $value;
       }
     }
 
@@ -1017,7 +1018,7 @@ function _percentagepricesetfield_get_max_navID(&$menu, &$max_navID = NULL) {
  *
  * @return Mixed The altered field value.
  */
-function _percentagepricesetfield_preprocess_default_value($name, $value) {
+function _percentagepricesetfield_preprocess_saved_value($name, $value) {
   switch ($name) {
     case 'disable_payment_methods':
       $value = array_fill_keys((array) CRM_Utils_Array::explodePadded($value), '1');
