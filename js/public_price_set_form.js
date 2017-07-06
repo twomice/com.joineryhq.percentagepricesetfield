@@ -19,15 +19,19 @@ CRM.percentagepricesetfield = {
   changePaymentProcessor: function changePaymentProcessor() {
     var selected_payment_method = cj('input[name="payment_processor_id"]:checked').val();
     if (CRM.vars.percentagepricesetfield.disable_payment_methods[selected_payment_method]) {
+console.log('22');
       // Hide the option.
       cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
       // Store the state of the checkbox, so we can restore it later.
       CRM.percentagepricesetfield.is_percentage = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
+      console.log('variable', CRM.percentagepricesetfield.is_percentage)
+      console.log('checkbox', cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked'));
       // Un-check the checkbox; we have to actually uncheck it, because it's
       // a Price Set Field and will be treated as a line item if checked.
       cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', false);
     }
     else {
+console.log('34');
       // Restore the previous state of the percentage checkbox.
       cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', CRM.percentagepricesetfield.isPercentage());
       // Dispaly the option again.
@@ -37,6 +41,8 @@ CRM.percentagepricesetfield = {
     // the state of the checkbox but did not update the total, so we need to
     // do it now to be sure all is right.
     CRM.percentagepricesetfield.updateTotal();
+    
+    console.log('isPercentage()', CRM.percentagepricesetfield.isPercentage());
   },
   
   /**
@@ -156,4 +162,9 @@ cj(function() {
   // Update the form now, based on default form field values.
   CRM.percentagepricesetfield.updateTotal();
   CRM.percentagepricesetfield.changePaymentProcessor();
+  
+  // Add an event handler to set is_percentage any time the checkbox is manually changed.
+  cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).change(function(){
+    CRM.percentagepricesetfield.is_percentage = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
+  });
 });
