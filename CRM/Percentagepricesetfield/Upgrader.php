@@ -83,17 +83,21 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Percentagepricesetfield_U
   }
 
   /**
-   * Clean up duplicates; add unique index.
+   * Add columns to civicrm_percentagepricesetfield table; rebuild menu.
    *
    * @return TRUE on success
    * @throws Exception
    */
   public function upgrade_1101() {
-    $query = "ALTER TABLE  civicrm_percentagepricesetfield 
+    $query = "ALTER TABLE  civicrm_percentagepricesetfield
       ADD hide_and_force TINYINT NULL DEFAULT  '0' COMMENT 'Should this percentage be applied always, and the field hidden',
       ADD disable_payment_methods varchar(255) NOT NULL COMMENT 'Concatenated string of payment processor IDs'
     ";
     CRM_Core_DAO::executeQuery($query);
+
+    // Also clear caches, because in version 1.2 we added a new menu path.
+    civicrm_api3('system', 'flush', array());
+
     return TRUE;
   }
 
