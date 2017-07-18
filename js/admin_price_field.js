@@ -84,9 +84,14 @@ cj(function($) {
   });
   cj('div#percentagepricesetfield-block td').removeClass('nowrap');
 
+  // Freeze hide-and-force checkbox if so instructed. See "NOTE ON FREEZING 
+  // HIDE-AND-FORCE" in percentagepricesetfield.php.
+  if (CRM.vars.percentagepricesetfield.hide_and_force_element_freeze) {
+    CRM.$('#percentagepricesetfield_hide_and_force').hide().after('[x]');    
+  }
+  // 
   // Append any descriptions for bhfe fields.
   for (var i in CRM.vars.percentagepricesetfield.descriptions) {
-    console.log(i)
     cj('tr#tr-'+ i +' td.input').append('<div class="description">'+ CRM.vars.percentagepricesetfield.descriptions[i] +'</div>');
   }
 

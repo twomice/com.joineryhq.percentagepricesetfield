@@ -588,11 +588,18 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $hide_and_force_element = $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', ts('Hide checkbox and force to "yes"'));
   $descriptions['percentagepricesetfield_hide_and_force'] = ts('This option will force the additional percentage to be applied, and hide the check box, in front-end forms. (Additional percentage is always an option in back-office forms.)');
 
-  // Support global "hide and force" config option; if it's TRUE, then freeze
-  // this field and adjust its description.
+  // Support global "hide and force" config option; if it's TRUE, then tell JS 
+  // to freeze this field, and adjust its description. 
+  // NOTE ON FREEZING HIDE-AND-FORCE: We don't use 
+  // $element->freeze() because it will actually prevent the element from 
+  // appearing in the DOM, and that will break javascript that relies on the 
+  // field name (maybe it doesn't have to rely on the field name, but doing so
+  // covers a variety of edge cases that can't be handled with, e.g., id or 
+  // label "for" attribute, as in the case of checkboxes/radios.)
+  $hide_and_force_element_freeze = FALSE;
   if (_percentagepricesetfield_get_setting_value_override('hide_and_force')) {
-    $hide_and_force_element->freeze();
-    $descriptions['percentagepricesetfield_hide_and_force'] = ts('This setting overridden by the site-wide configuration at <a href="%1">%2</a>..', array(
+    $hide_and_force_element_freeze = TRUE;
+    $descriptions['percentagepricesetfield_hide_and_force'] = ts('This setting overridden by the site-wide configuration at <a href="%1">%2</a>.', array(
       1 => CRM_Utils_System::url('civicrm/admin/percentagepricesetfield/settings', 'reset=1'),
       2 => ts('Percentage Price Set Field: Settings'),
       'domain' => 'org.joineryhq.percentagepricesetfield',
@@ -636,6 +643,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $vars = array();
   $vars['descriptions'] = $descriptions;
   $vars['bhfe_fields'] = $bhfe;
+  $vars['hide_and_force_element_freeze'] = $hide_and_force_element_freeze;
   $field_id = $form->getVar('_fid');
   if ($field_id) {
     $values = _percentagepricesetfield_get_settings($field_id);
