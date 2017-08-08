@@ -78,6 +78,7 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
       _percentagepricesetfield_buildForm_AdminPriceField($form);
       break;
 
+    case 'CRM_Event_Form_ParticipantFeeSelection':
     case 'CRM_Event_Form_Registration_Register':
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Contribute_Form_Contribution':
@@ -496,7 +497,7 @@ function _percentagepricesetfield_get_percentage($price_set_id) {
  *
  * @param Object $form
  */
-function _percentagepricesetfield_buildForm_public_price_set_form($form) {
+function _percentagepricesetfield_buildForm_public_price_set_form($form) {  
   $field_id = _percentagepricesetfield_get_form_percentage_field_id($form);
   if ($field_id) {
     $field =& $form->_elements[$form->_elementIndex["price_{$field_id}"]];
@@ -904,27 +905,38 @@ function _percentagepricesetfield_get_content_pricesetid_function($content, $con
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_backoffice';
   }
-  elseif (
+  
+  if (
     $context == 'page'
     && $url_path == 'civicrm/contact/view/participant'
     && CRM_Utils_Array::value('snippet', $_get) == 4
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_backoffice';
   }
-  elseif (
+
+  if (
+    $context == 'form'
+    && $url_path == 'civicrm/event/participant/feeselection'
+    && CRM_Utils_Array::value('snippet', $_get) == 'json'
+  ) {
+    return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_backoffice_edit';
+  }
+  
+  if (
     $context == 'form'
     && !empty($object->_priceSetId)
     && $url_path == 'civicrm/contribute/transact'
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_public';
   }
-  elseif (
+  
+  if (
     $context == 'form'
     && !empty($object->_priceSetId)
     && $url_path == 'civicrm/event/register'
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_public';
-  }
+  }  
 }
 
 /**
@@ -995,6 +1007,31 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_
   $bao = new CRM_Price_DAO_PriceSetEntity();
   $bao->entity_table = 'civicrm_event';
   $bao->entity_id = $_get['eventId'];
+  $bao->find();
+  $bao->fetch();
+  return $bao->price_set_id;
+}
+
+/**
+ * Callback function to retrieve price set ID for a back-office event registration
+ * form.
+ *
+ * @param String $content As in first argument to hook_civicrm_alterContent()
+ * @param String $context As in second argument to hook_civicrm_alterContent()
+ * @param String $tplName As in third argument to hook_civicrm_alterContent()
+ * @param Object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param Array $_get Contents of $_GET.
+ *
+ * @return String The price set ID, if any; otherwise NULL.
+ */
+function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_backoffice_edit($content, $context, $tplName, $object, $_get) {
+  if (empty($object->_eventId)) {
+    return NULL;
+  }
+  // CiviCRM 4.7.22 has no Price Set Entity API, so use BAO.
+  $bao = new CRM_Price_DAO_PriceSetEntity();
+  $bao->entity_table = 'civicrm_event';
+  $bao->entity_id = $object->_eventId;
   $bao->find();
   $bao->fetch();
   return $bao->price_set_id;
@@ -1093,5 +1130,14 @@ function _percentagepricesetfield_allow_hide_and_force($content, $context, $tplN
   ) {
     return FALSE;
   }  
+  
+  if (
+    $context == 'form'
+    && $url_path == 'civicrm/event/participant/feeselection'
+    && CRM_Utils_Array::value('snippet', $_get) == 'json'
+  ) {
+    return FALSE;
+  }
+  
   return TRUE;
 }
