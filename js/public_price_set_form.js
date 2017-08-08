@@ -6,8 +6,8 @@
 CRM.percentagepricesetfield = {
   // Monetary symbol (e.g. '$') in use on the page.
   monetarySymbol: '',
-  // Storage for most recent value of percentage checkbox, for use in cases 
-  // where we have to automatically disable it (e.g., when disabling the 
+  // Storage for most recent value of percentage checkbox, for use in cases
+  // where we have to automatically disable it (e.g., when disabling the
   // percentage option based on the selected payment method).
   is_percentage: false,
 
@@ -15,7 +15,7 @@ CRM.percentagepricesetfield = {
   storePercentageState: function storePercentageState() {
     CRM.percentagepricesetfield.is_percentage = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
   },
-  
+
   /**
    * Hide/show and un-check/restore the percentage option, based on seleted
    * payment method.
@@ -45,7 +45,7 @@ CRM.percentagepricesetfield = {
     CRM.percentagepricesetfield.updateTotal();
 
   },
-  
+
   /**
    * Get the appropriate state of the percentage checkbox.
    * @returns boolean TRUE or FALSE
@@ -55,7 +55,7 @@ CRM.percentagepricesetfield = {
     // value.
     return (CRM.vars.percentagepricesetfield.hide_and_force || CRM.percentagepricesetfield.is_percentage)
   },
-  
+
   /**
    * Update the total-plus-percentage display with the correct amount.
    */
@@ -105,16 +105,16 @@ CRM.percentagepricesetfield = {
 cj(function() {
   // Store the state of the checkbox, so we can restore it later.
   CRM.percentagepricesetfield.storePercentageState();
-  
+
   if (CRM.vars.percentagepricesetfield.hide_and_force) {
     // Hide and force if so configured.
     cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', true);
     cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.price-set-row').hide();
   }
-    
+
   // Add an onChange handler for all of the payment method options.
   cj('input[name="payment_processor_id"]').change(CRM.percentagepricesetfield.changePaymentProcessor);
-  
+
 
   // Clone and hide the original 'pricesetTotal' div. We'll use the new one to
   // display the total-plus-percentage amount. This allows us to use the original
@@ -161,12 +161,12 @@ cj(function() {
           break;
       }
     }
-  });  
+  });
 
   // Update the form now, based on default form field values.
   CRM.percentagepricesetfield.updateTotal();
   CRM.percentagepricesetfield.changePaymentProcessor();
-  
+
   // Add an event handler to set is_percentage any time the checkbox is manually changed.
   cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).change(function(){
     CRM.percentagepricesetfield.is_percentage = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
