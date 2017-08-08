@@ -497,7 +497,7 @@ function _percentagepricesetfield_get_percentage($price_set_id) {
  *
  * @param Object $form
  */
-function _percentagepricesetfield_buildForm_public_price_set_form($form) {  
+function _percentagepricesetfield_buildForm_public_price_set_form($form) {
   $field_id = _percentagepricesetfield_get_form_percentage_field_id($form);
   if ($field_id) {
     $field =& $form->_elements[$form->_elementIndex["price_{$field_id}"]];
@@ -593,13 +593,13 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $hide_and_force_element = $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', ts('Hide checkbox and force to "yes"'));
   $descriptions['percentagepricesetfield_hide_and_force'] = ts('This option will force the additional percentage to be applied, and hide the check box, in front-end forms. (Additional percentage is always an option in back-office forms.)');
 
-  // Support global "hide and force" config option; if it's TRUE, then tell JS 
-  // to freeze this field, and adjust its description. 
-  // NOTE ON FREEZING HIDE-AND-FORCE: We don't use 
-  // $element->freeze() because it will actually prevent the element from 
-  // appearing in the DOM, and that will break javascript that relies on the 
+  // Support global "hide and force" config option; if it's TRUE, then tell JS
+  // to freeze this field, and adjust its description.
+  // NOTE ON FREEZING HIDE-AND-FORCE: We don't use
+  // $element->freeze() because it will actually prevent the element from
+  // appearing in the DOM, and that will break javascript that relies on the
   // field name (maybe it doesn't have to rely on the field name, but doing so
-  // covers a variety of edge cases that can't be handled with, e.g., id or 
+  // covers a variety of edge cases that can't be handled with, e.g., id or
   // label "for" attribute, as in the case of checkboxes/radios.)
   $hide_and_force_element_freeze = FALSE;
   if (_percentagepricesetfield_get_setting_value_override('hide_and_force')) {
@@ -896,7 +896,7 @@ function _percentagepricesetfield_update_field($field_values) {
  * @return String The appropriate callback function name.
  */
 function _percentagepricesetfield_get_content_pricesetid_function($content, $context, $tplName, $object, $_get) {
-  $url_path = implode('/', $object->urlPath);  
+  $url_path = implode('/', $object->urlPath);
   if (
     $context == 'page'
     && !empty($_get['priceSetId'])
@@ -905,7 +905,7 @@ function _percentagepricesetfield_get_content_pricesetid_function($content, $con
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_backoffice';
   }
-  
+
   if (
     $context == 'page'
     && $url_path == 'civicrm/contact/view/participant'
@@ -921,7 +921,7 @@ function _percentagepricesetfield_get_content_pricesetid_function($content, $con
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_backoffice_edit';
   }
-  
+
   if (
     $context == 'form'
     && !empty($object->_priceSetId)
@@ -929,14 +929,14 @@ function _percentagepricesetfield_get_content_pricesetid_function($content, $con
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_public';
   }
-  
+
   if (
     $context == 'form'
     && !empty($object->_priceSetId)
     && $url_path == 'civicrm/event/register'
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_public';
-  }  
+  }
 }
 
 /**
@@ -952,7 +952,7 @@ function _percentagepricesetfield_get_content_pricesetid_function($content, $con
  * @return String The price set ID, if any; otherwise NULL.
  */
 function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_backoffice($content, $context, $tplName, $object, $_get) {
-  return CRM_Utils_Array::value('priceSetId', $_get); 
+  return CRM_Utils_Array::value('priceSetId', $_get);
 }
 
 /**
@@ -1113,7 +1113,7 @@ function _percentagepricesetfield_preprocess_saved_value($name, $value) {
 }
 
 function _percentagepricesetfield_allow_hide_and_force($content, $context, $tplName, $object, $_get) {
-  $url_path = implode('/', $object->urlPath);  
+  $url_path = implode('/', $object->urlPath);
   if (
     $context == 'page'
     && !empty($_get['priceSetId'])
@@ -1122,15 +1122,15 @@ function _percentagepricesetfield_allow_hide_and_force($content, $context, $tplN
   ) {
     return FALSE;
   }
-  
+
   if (
     $context == 'page'
     && $url_path == 'civicrm/contact/view/participant'
     && CRM_Utils_Array::value('snippet', $_get) == 4
   ) {
     return FALSE;
-  }  
-  
+  }
+
   if (
     $context == 'form'
     && $url_path == 'civicrm/event/participant/feeselection'
@@ -1138,6 +1138,6 @@ function _percentagepricesetfield_allow_hide_and_force($content, $context, $tplN
   ) {
     return FALSE;
   }
-  
+
   return TRUE;
 }
