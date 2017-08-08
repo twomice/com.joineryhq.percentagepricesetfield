@@ -81,6 +81,7 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
     case 'CRM_Event_Form_Registration_Register':
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Contribute_Form_Contribution':
+    case 'CRM_Event_Form_Participant':
       _percentagepricesetfield_buildForm_public_price_set_form($form);
       break;
 
@@ -200,9 +201,12 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
   $args = func_get_args();
   $args['_GET'] = $_GET;
   if ($func = call_user_func_array('_percentagepricesetfield_get_content_pricesetid_function', $args)) {
-    $price_set_id = call_user_func_array($func, $args);
+    if (function_exists($func)) {
+      $price_set_id = call_user_func_array($func, $args);
+    }
   }
   if (!empty($price_set_id)) {
+    $allow_hide_and_force = _percentagepricesetfield_allow_hide_and_force($content, $context, $tplName, $object, $_GET);
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id, TRUE);
     if (empty($field_ids)) {
       // No enabled percentage fields were found for this form. Nothing to do.
@@ -222,7 +226,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
     $vars = array(
       'percentage' => _percentagepricesetfield_get_percentage($price_set_id),
       'percentage_checkbox_id' => "price_{$field_id}_{$field_value}",
-      'hide_and_force' => (int) _percentagepricesetfield_get_setting_value($field_id, 'hide_and_force'),
+      'hide_and_force' => (int) ($allow_hide_and_force && _percentagepricesetfield_get_setting_value($field_id, 'hide_and_force')),
       'disable_payment_methods' => _percentagepricesetfield_get_setting_value($field_id, 'disable_payment_methods'),
     );
     $resource = CRM_Core_Resources::singleton();
@@ -694,7 +698,7 @@ function _percentagepricesetfield_rectify_price_options($field_values) {
   }
   catch (CiviCRM_API3_Exception $e) {
    $error = $e->getMessage();
-   CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error while rectifying price options: %1', array(1 => $error)));
+   CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__, 2 => $error)));
   }
 
   // Remove each price field value for this field.
@@ -706,7 +710,7 @@ function _percentagepricesetfield_rectify_price_options($field_values) {
     }
     catch (CiviCRM_API3_Exception $e) {
      $error = $e->getMessage();
-     CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error while rectifying price options: %1', array(1 => $error)));
+     CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__ . "|{$value['id']}", 2 => $error)));
     }
   }
 
@@ -722,7 +726,7 @@ function _percentagepricesetfield_rectify_price_options($field_values) {
   }
   catch (CiviCRM_API3_Exception $e) {
    $error = $e->getMessage();
-   CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error while rectifying price options: %1', array(1 => $error)));
+   CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__, 2 => $error)));
   }
 }
 
@@ -891,14 +895,21 @@ function _percentagepricesetfield_update_field($field_values) {
  * @return String The appropriate callback function name.
  */
 function _percentagepricesetfield_get_content_pricesetid_function($content, $context, $tplName, $object, $_get) {
-  $url_path = implode('/', $object->urlPath);
+  $url_path = implode('/', $object->urlPath);  
   if (
     $context == 'page'
     && !empty($_get['priceSetId'])
     && $url_path == 'civicrm/contact/view/contribution'
-    && $_get['snippet'] == 4
+    && CRM_Utils_Array::value('snippet', $_get) == 4
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_backoffice';
+  }
+  elseif (
+    $context == 'page'
+    && $url_path == 'civicrm/contact/view/participant'
+    && CRM_Utils_Array::value('snippet', $_get) == 4
+  ) {
+    return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_backoffice';
   }
   elseif (
     $context == 'form'
@@ -929,7 +940,7 @@ function _percentagepricesetfield_get_content_pricesetid_function($content, $con
  * @return String The price set ID, if any; otherwise NULL.
  */
 function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_backoffice($content, $context, $tplName, $object, $_get) {
-  return $_get['priceSetId'];
+  return CRM_Utils_Array::value('priceSetId', $_get); 
 }
 
 /**
@@ -949,7 +960,7 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contri
 }
 
 /**
- * Callback function to retrieve price set ID for a public-facing contribution
+ * Callback function to retrieve price set ID for a public-facing event registration
  * form.
  *
  * @param String $content As in first argument to hook_civicrm_alterContent()
@@ -962,6 +973,31 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contri
  */
 function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_public($content, $context, $tplName, $object, $_get) {
   return $object->_priceSetId;
+}
+
+/**
+ * Callback function to retrieve price set ID for a back-office event registration
+ * form.
+ *
+ * @param String $content As in first argument to hook_civicrm_alterContent()
+ * @param String $context As in second argument to hook_civicrm_alterContent()
+ * @param String $tplName As in third argument to hook_civicrm_alterContent()
+ * @param Object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param Array $_get Contents of $_GET.
+ *
+ * @return String The price set ID, if any; otherwise NULL.
+ */
+function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_backoffice($content, $context, $tplName, $object, $_get) {
+  if (empty($_get['eventId'])) {
+    return NULL;
+  }
+  // CiviCRM 4.7.22 has no Price Set Entity API, so use BAO.
+  $bao = new CRM_Price_DAO_PriceSetEntity();
+  $bao->entity_table = 'civicrm_event';
+  $bao->entity_id = $_get['eventId'];
+  $bao->find();
+  $bao->fetch();
+  return $bao->price_set_id;
 }
 
 /**
@@ -1037,4 +1073,25 @@ function _percentagepricesetfield_preprocess_saved_value($name, $value) {
       break;
   }
   return $value;
+}
+
+function _percentagepricesetfield_allow_hide_and_force($content, $context, $tplName, $object, $_get) {
+  $url_path = implode('/', $object->urlPath);  
+  if (
+    $context == 'page'
+    && !empty($_get['priceSetId'])
+    && $url_path == 'civicrm/contact/view/contribution'
+    && CRM_Utils_Array::value('snippet', $_get) == 4
+  ) {
+    return FALSE;
+  }
+  
+  if (
+    $context == 'page'
+    && $url_path == 'civicrm/contact/view/participant'
+    && CRM_Utils_Array::value('snippet', $_get) == 4
+  ) {
+    return FALSE;
+  }  
+  return TRUE;
 }
