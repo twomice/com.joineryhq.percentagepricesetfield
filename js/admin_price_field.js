@@ -74,11 +74,11 @@ cj(function($) {
   cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_main').append(cj('table#bhfe-table input#is_percentagepricesetfield').closest('tr'));
   // Move remaining bhfe fields into the second tbody.
   cj('table#bhfe-table tr').each(function(idx, el) {
-    var el = cj(el);
-    cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_details').append(el)
+    el = cj(el);
+    cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_details').append(el);
     var input_name = el.find('input').attr('name').split('[')[0];
-    el.attr('id', 'tr-' + input_name)
-    var cells = el.find('td')
+    el.attr('id', 'tr-' + input_name);
+    var cells = el.find('td');
     cj(cells[0]).addClass('label');
     cj(cells[1]).addClass('input');
   });
@@ -131,6 +131,6 @@ cj(function($) {
   // Note: on "new price field" forms, we could call this as cj('#html_type').change();
   // but on "edit price field" forms, #html_type has no onChange event handler.
   // So we call the function directly in both cases.
-  option_html_type()
+  option_html_type();
 });
 

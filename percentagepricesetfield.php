@@ -62,7 +62,6 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
           $option['amount'] = _percentagepricesetfield_calculate_additional_amount($form);
           $percent = _percentagepricesetfield_get_percentage($form->_priceSetId);
           $option['label'] = $percent . '%';
-
         }
       }
     }
@@ -232,7 +231,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
     );
     $resource = CRM_Core_Resources::singleton();
     $content .= '<script type="text/javascript">';
-    $content .= 'CRM.vars.percentagepricesetfield = '. json_encode($vars) .';';
+    $content .= 'CRM.vars.percentagepricesetfield = ' . json_encode($vars) . ';';
     $content .= file_get_contents($resource->getPath('com.joineryhq.percentagepricesetfield', 'js/public_price_set_form.js'));
     $content .= '</script>';
   }
@@ -251,11 +250,9 @@ function percentagepricesetfield_civicrm_pageRun(&$page) {
     // Adjust the template variables for each percentage field, to hide certain
     // checkbox-related functionality which is irrelevant to percentage fields.
     $tpl = CRM_Core_Smarty::singleton();
-    $tpl_vars =& $tpl->get_template_vars();
+    $tpl_vars = & $tpl->get_template_vars();
     foreach ($field_ids as $field_id) {
-      if (
-        array_key_exists('priceField', $tpl_vars)
-        && array_key_exists($field_id, $tpl_vars['priceField'])
+      if (array_key_exists('priceField', $tpl_vars) && array_key_exists($field_id, $tpl_vars['priceField'])
       ) {
         // Avoid printing 'Edit Price Options' link.
         $tpl_vars['priceField'][$field_id]['html_type'] = 'Text';
@@ -278,7 +275,7 @@ function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$fil
     if (CRM_Utils_Array::value('is_percentagepricesetfield', $fields)) {
       $field_ids = _percentagepricesetfield_get_percentage_field_ids($fields['sid']);
       $fid = CRM_Utils_Array::value('fid', $fields);
-      while(($fid_key = array_search($fid, $field_ids)) !== false) {
+      while (($fid_key = array_search($fid, $field_ids)) !== FALSE) {
         unset($field_ids[$fid_key]);
       }
       if (!empty($field_ids)) {
@@ -296,9 +293,9 @@ function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$fil
 /**
  * Get the field_ids of all percentage fields in the given price set.
  *
- * @param Integer $price_set_id The ID of the price set to check; if string 'ALL',
+ * @param int $price_set_id The ID of the price set to check; if string 'ALL',
  *   return all percentage price fields regardlesss of price_set.
- * @param Bool $limit_enabled If TRUE, return IDs of only enabled percentage
+ * @param bool $limit_enabled If TRUE, return IDs of only enabled percentage
  *  fields; otherwise return IDs of all percentage fields.
  * @return Array of field ids
  */
@@ -343,7 +340,7 @@ function _percentagepricesetfield_get_percentage_field_ids($price_set_id, $limit
  * Calculate the additional amount to add, based on selected price options and
  * the percentage field.
  *
- * @param Object $form The form being processed.
+ * @param  Object $form The form being processed.
  * @return Float The additional amount to be added.
  */
 function _percentagepricesetfield_calculate_additional_amount($form) {
@@ -398,7 +395,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
  * Determine whether or not to apply the percentage to tax amounts, for a given
  * percentage field.
  *
- * @param Integer $field_id The ID of the percentage field.
+ * @param  Integer $field_id The ID of the percentage field.
  * @return Bool
  */
 function _percentagepricesetfield_get_setting_value($field_id, $setting_name) {
@@ -415,33 +412,33 @@ function _percentagepricesetfield_get_setting_value($field_id, $setting_name) {
  * name. Return any value that should override the given field setting, or NULL
  * if there is no such value.
  *
- * @param type $setting_name
+ * @param string $setting_name
  */
 function _percentagepricesetfield_get_setting_value_override($setting_name) {
   switch ($setting_name) {
     case 'hide_and_force':
       // TODO: Refactor to something more re-usable.
-      $result = civicrm_api3('Setting', 'get', array(
-        'sequential' => 1,
-        'return' => array("percentagepricesetfield_hide_and_force_all"),
-      ));
+      $result = civicrm_api3(
+        'Setting', 'get', array(
+          'sequential' => 1,
+          'return' => array("percentagepricesetfield_hide_and_force_all"),
+        )
+      );
       $value = $result['values'][0]['percentagepricesetfield_hide_and_force_all'];
-      if ((bool)$value) {
+      if ((bool) $value) {
         return $value;
       }
       else {
         return NULL;
       }
       break;
-
   }
 }
-
 
 /**
  * Get the stored configuration settings for a given percentage field.
  *
- * @param Integer $field_id The ID of the percentage field.
+ * @param  Integer $field_id The ID of the percentage field.
  * @return Array of setting values.
  */
 function _percentagepricesetfield_get_settings($field_id) {
@@ -481,7 +478,7 @@ function _percentagepricesetfield_get_settings($field_id) {
  * Get the configured percentage setting for the percentage field in a
  * given price set.
  *
- * @param Integer $price_set_id
+ * @param  Integer $price_set_id
  * @return Float
  */
 function _percentagepricesetfield_get_percentage($price_set_id) {
@@ -495,15 +492,15 @@ function _percentagepricesetfield_get_percentage($price_set_id) {
  * buildForm hook handler for public-facing forms containing price set fields
  * (e.g., event registration forms, contribution pages)
  *
- * @param Object $form
+ * @param object $form
  */
 function _percentagepricesetfield_buildForm_public_price_set_form($form) {
   $field_id = _percentagepricesetfield_get_form_percentage_field_id($form);
   if ($field_id) {
-    $field =& $form->_elements[$form->_elementIndex["price_{$field_id}"]];
+    $field = & $form->_elements[$form->_elementIndex["price_{$field_id}"]];
     // Get a reference to the last element in the $field->_elements array.
     end($field->_elements);
-    $element =& $field->_elements[key($field->_elements)];
+    $element = & $field->_elements[key($field->_elements)];
     // Use the field label as the label for this checkbox element.
     $element->_text = $field->_label;
     // Set this checkbox's "price" to 0. This allows us to avoid having
@@ -528,7 +525,7 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
  * For a given form, get the HTML "id" attribute for the percentage price field,
  * if any.
  *
- * @param Object $form An object extending CRM_Core_Form
+ * @param  Object $form An object extending CRM_Core_Form
  * @return String "id" attribute, if any; otherwise FALSE.
  */
 function _percentagepricesetfield_get_form_percentage_field_id($form) {
@@ -554,11 +551,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   // to massage the submitted values; we don't do this in hook_civicrm_postProcess()
   // because that runs after the form is processed, whereas we need to modify
   // these values before the form is processed.
-  if (
-    $form->_flagSubmitted
-    && !$form->_submitValues['fid']
-    && $form->_submitValues['html_type'] == 'CheckBox'
-    && $form->_submitValues['is_percentagepricesetfield']
+  if ($form->_flagSubmitted && !$form->_submitValues['fid'] && $form->_submitValues['html_type'] == 'CheckBox' && $form->_submitValues['is_percentagepricesetfield']
   ) {
     // Auto-create the list of options to have a single option. This is necessary
     // because the form validation for a new checkbox requires options to be
@@ -604,11 +597,13 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $hide_and_force_element_freeze = FALSE;
   if (_percentagepricesetfield_get_setting_value_override('hide_and_force')) {
     $hide_and_force_element_freeze = TRUE;
-    $descriptions['percentagepricesetfield_hide_and_force'] = ts('This setting overridden by the site-wide configuration at <a href="%1">%2</a>.', array(
-      1 => CRM_Utils_System::url('civicrm/admin/percentagepricesetfield/settings', 'reset=1'),
-      2 => ts('Percentage Price Set Field: Settings'),
-      'domain' => 'org.joineryhq.percentagepricesetfield',
-    ));
+    $descriptions['percentagepricesetfield_hide_and_force'] = ts(
+      'This setting overridden by the site-wide configuration at <a href="%1">%2</a>.', array(
+        1 => CRM_Utils_System::url('civicrm/admin/percentagepricesetfield/settings', 'reset=1'),
+        2 => ts('Percentage Price Set Field: Settings'),
+        'domain' => 'org.joineryhq.percentagepricesetfield',
+      )
+    );
   }
 
   // Create a group of "disable for payment processors" with one checkbox per
@@ -616,12 +611,14 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $payment_method_checkboxes = array(
     $form->createElement('checkbox', '0', 0, ' ' . ts('Pay later (check)')),
   );
-  $result = civicrm_api3('PaymentProcessor', 'get', array(
-    'sequential' => 1,
-    'is_test' => 0,
-    'return' => array("name"),
-    'options' => array('sort' => "name"),
-  ));
+  $result = civicrm_api3(
+    'PaymentProcessor', 'get', array(
+      'sequential' => 1,
+      'is_test' => 0,
+      'return' => array("name"),
+      'options' => array('sort' => "name"),
+    )
+  );
   foreach ($result['values'] as $value) {
     $payment_method_checkboxes[] = $form->createElement('checkbox', $value['id'], $value['id'], ' ' . $value['name']);
   }
@@ -691,43 +688,49 @@ function _percentagepricesetfield_rectify_price_options($field_values) {
   $field_id = $field_values['field_id'];
 
   // Find all existing price field values for this field.
-  try{
-    $price_options = civicrm_api3('price_field_value', 'get', array(
-      'price_field_id' => $field_id,
-      'sequential' => 1,
-    ));
+  try {
+    $price_options = civicrm_api3(
+      'price_field_value', 'get', array(
+        'price_field_id' => $field_id,
+        'sequential' => 1,
+      )
+    );
   }
   catch (CiviCRM_API3_Exception $e) {
-   $error = $e->getMessage();
-   CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__, 2 => $error)));
+    $error = $e->getMessage();
+    CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__, 2 => $error)));
   }
 
   // Remove each price field value for this field.
   foreach ($price_options['values'] as $value) {
-    try{
-      civicrm_api3('price_field_value', 'delete', array(
-        'id' => $value['id'],
-      ));
+    try {
+      civicrm_api3(
+        'price_field_value', 'delete', array(
+          'id' => $value['id'],
+        )
+      );
     }
     catch (CiviCRM_API3_Exception $e) {
-     $error = $e->getMessage();
-     CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__ . "|{$value['id']}", 2 => $error)));
+      $error = $e->getMessage();
+      CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__ . "|{$value['id']}", 2 => $error)));
     }
   }
 
   // Create a single correct price_field_value entity for this price field.
-  try{
-    civicrm_api3('price_field_value', 'create', array(
-      'price_field_id' => $field_id,
-      'name' => '_',
-      'label' => 'one',
-      'amount' => '1',
-      'financial_type_id' => $field_values['financial_type_id'],
-    ));
+  try {
+    civicrm_api3(
+      'price_field_value', 'create', array(
+        'price_field_id' => $field_id,
+        'name' => '_',
+        'label' => 'one',
+        'amount' => '1',
+        'financial_type_id' => $field_values['financial_type_id'],
+      )
+    );
   }
   catch (CiviCRM_API3_Exception $e) {
-   $error = $e->getMessage();
-   CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__, 2 => $error)));
+    $error = $e->getMessage();
+    CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__, 2 => $error)));
   }
 }
 
@@ -746,9 +749,9 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
       'apply_to_taxes' => (int) !empty($values['percentagepricesetfield_apply_to_taxes']),
       'hide_and_force' => (int) !empty($values['percentagepricesetfield_hide_and_force']),
       'disable_payment_methods' => (
-        !empty($values['percentagepricesetfield_disable_payment_methods']) ?
-        CRM_Utils_Array::implodePadded(array_keys($values['percentagepricesetfield_disable_payment_methods'])) :
-        ''
+      !empty($values['percentagepricesetfield_disable_payment_methods']) ?
+      CRM_Utils_Array::implodePadded(array_keys($values['percentagepricesetfield_disable_payment_methods'])) :
+      ''
       ),
       'field_id' => $field_id,
     );
@@ -832,7 +835,7 @@ function _percentagepricesetfield_create_field($field_values) {
 /**
  * Remove "percentage field" behavior from a given priceset field.
  *
- * @param integer $field_id The field_id of the given priceset field.
+ * @param int $field_id The field_id of the given priceset field.
  */
 function _percentagepricesetfield_remove_field_percentage($field_id) {
   $query = "
@@ -859,7 +862,7 @@ function _percentagepricesetfield_update_field($field_values) {
     INSERT IGNORE INTO `civicrm_percentagepricesetfield` (field_id) values (%1)
   ";
   $params = array(
-    1 => array($field_id, 'Integer')
+    1 => array($field_id, 'Integer'),
   );
   CRM_Core_DAO::executeQuery($query, $params);
 
@@ -887,53 +890,37 @@ function _percentagepricesetfield_update_field($field_values) {
  * Determine the correct callback function to call in order to retrieve the
  * price set ID of the relevant percentage price field.
  *
- * @param String $content As in first argument to hook_civicrm_alterContent()
- * @param String $context As in second argument to hook_civicrm_alterContent()
- * @param String $tplName As in third argument to hook_civicrm_alterContent()
- * @param Object $object As in fourth argument to hook_civicrm_alterContent()
- * @param Array $_get Contents of $_GET.
+ * @param string $content As in first argument to hook_civicrm_alterContent()
+ * @param string $context As in second argument to hook_civicrm_alterContent()
+ * @param string $tplName As in third argument to hook_civicrm_alterContent()
+ * @param object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param array $_get Contents of $_GET.
  *
  * @return String The appropriate callback function name.
  */
 function _percentagepricesetfield_get_content_pricesetid_function($content, $context, $tplName, $object, $_get) {
   $url_path = implode('/', $object->urlPath);
-  if (
-    $context == 'page'
-    && !empty($_get['priceSetId'])
-    && $url_path == 'civicrm/contact/view/contribution'
-    && CRM_Utils_Array::value('snippet', $_get) == 4
+  if ($context == 'page' && !empty($_get['priceSetId']) && $url_path == 'civicrm/contact/view/contribution' && CRM_Utils_Array::value('snippet', $_get) == 4
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_backoffice';
   }
 
-  if (
-    $context == 'page'
-    && $url_path == 'civicrm/contact/view/participant'
-    && CRM_Utils_Array::value('snippet', $_get) == 4
+  if ($context == 'page' && $url_path == 'civicrm/contact/view/participant' && CRM_Utils_Array::value('snippet', $_get) == 4
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_backoffice';
   }
 
-  if (
-    $context == 'form'
-    && $url_path == 'civicrm/event/participant/feeselection'
-    && CRM_Utils_Array::value('snippet', $_get) == 'json'
+  if ($context == 'form' && $url_path == 'civicrm/event/participant/feeselection' && CRM_Utils_Array::value('snippet', $_get) == 'json'
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_backoffice_edit';
   }
 
-  if (
-    $context == 'form'
-    && !empty($object->_priceSetId)
-    && $url_path == 'civicrm/contribute/transact'
+  if ($context == 'form' && !empty($object->_priceSetId) && $url_path == 'civicrm/contribute/transact'
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_public';
   }
 
-  if (
-    $context == 'form'
-    && !empty($object->_priceSetId)
-    && $url_path == 'civicrm/event/register'
+  if ($context == 'form' && !empty($object->_priceSetId) && $url_path == 'civicrm/event/register'
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_public';
   }
@@ -943,11 +930,11 @@ function _percentagepricesetfield_get_content_pricesetid_function($content, $con
  * Callback function to retrieve price set ID for a back-office contribution
  * form.
  *
- * @param String $content As in first argument to hook_civicrm_alterContent()
- * @param String $context As in second argument to hook_civicrm_alterContent()
- * @param String $tplName As in third argument to hook_civicrm_alterContent()
- * @param Object $object As in fourth argument to hook_civicrm_alterContent()
- * @param Array $_get Contents of $_GET.
+ * @param string $content As in first argument to hook_civicrm_alterContent()
+ * @param string $context As in second argument to hook_civicrm_alterContent()
+ * @param string $tplName As in third argument to hook_civicrm_alterContent()
+ * @param object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param array $_get Contents of $_GET.
  *
  * @return String The price set ID, if any; otherwise NULL.
  */
@@ -959,11 +946,11 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contri
  * Callback function to retrieve price set ID for a public-facing contribution
  * form.
  *
- * @param String $content As in first argument to hook_civicrm_alterContent()
- * @param String $context As in second argument to hook_civicrm_alterContent()
- * @param String $tplName As in third argument to hook_civicrm_alterContent()
- * @param Object $object As in fourth argument to hook_civicrm_alterContent()
- * @param Array $_get Contents of $_GET.
+ * @param string $content As in first argument to hook_civicrm_alterContent()
+ * @param string $context As in second argument to hook_civicrm_alterContent()
+ * @param string $tplName As in third argument to hook_civicrm_alterContent()
+ * @param object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param array $_get Contents of $_GET.
  *
  * @return String The price set ID, if any; otherwise NULL.
  */
@@ -975,11 +962,11 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contri
  * Callback function to retrieve price set ID for a public-facing event registration
  * form.
  *
- * @param String $content As in first argument to hook_civicrm_alterContent()
- * @param String $context As in second argument to hook_civicrm_alterContent()
- * @param String $tplName As in third argument to hook_civicrm_alterContent()
- * @param Object $object As in fourth argument to hook_civicrm_alterContent()
- * @param Array $_get Contents of $_GET.
+ * @param string $content As in first argument to hook_civicrm_alterContent()
+ * @param string $context As in second argument to hook_civicrm_alterContent()
+ * @param string $tplName As in third argument to hook_civicrm_alterContent()
+ * @param object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param array $_get Contents of $_GET.
  *
  * @return String The price set ID, if any; otherwise NULL.
  */
@@ -991,11 +978,11 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_
  * Callback function to retrieve price set ID for a back-office event registration
  * form.
  *
- * @param String $content As in first argument to hook_civicrm_alterContent()
- * @param String $context As in second argument to hook_civicrm_alterContent()
- * @param String $tplName As in third argument to hook_civicrm_alterContent()
- * @param Object $object As in fourth argument to hook_civicrm_alterContent()
- * @param Array $_get Contents of $_GET.
+ * @param string $content As in first argument to hook_civicrm_alterContent()
+ * @param string $context As in second argument to hook_civicrm_alterContent()
+ * @param string $tplName As in third argument to hook_civicrm_alterContent()
+ * @param object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param array $_get Contents of $_GET.
  *
  * @return String The price set ID, if any; otherwise NULL.
  */
@@ -1016,11 +1003,11 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_
  * Callback function to retrieve price set ID for a back-office event registration
  * form.
  *
- * @param String $content As in first argument to hook_civicrm_alterContent()
- * @param String $context As in second argument to hook_civicrm_alterContent()
- * @param String $tplName As in third argument to hook_civicrm_alterContent()
- * @param Object $object As in fourth argument to hook_civicrm_alterContent()
- * @param Array $_get Contents of $_GET.
+ * @param string $content As in first argument to hook_civicrm_alterContent()
+ * @param string $context As in second argument to hook_civicrm_alterContent()
+ * @param string $tplName As in third argument to hook_civicrm_alterContent()
+ * @param object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param array $_get Contents of $_GET.
  *
  * @return String The price set ID, if any; otherwise NULL.
  */
@@ -1041,20 +1028,22 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_
  * Get the option value for the (exactly) one option that should exist for a
  * given percentage price set field.
  *
- * @param String Numeric $field_id System ID of the price set field.
+ * @param string Numeric $field_id System ID of the price set field.
  *
- * @return String Numeric value of the checkbox option.
+ * @return string Numeric value of the checkbox option.
  */
 function _percentagepricesetfield_get_field_value($field_id) {
   try {
-    $result = civicrm_api3('PriceFieldValue', 'get', array(
-      'sequential' => 1,
-      'price_field_id' => $field_id,
-    ));
+    $result = civicrm_api3(
+      'PriceFieldValue', 'get', array(
+        'sequential' => 1,
+        'price_field_id' => $field_id,
+      )
+    );
   }
   catch (CiviCRM_API3_Exception $e) {
-    CRM_Core_Error::debug_log_message('API Error in get PriceFieldValue: '. $e->getMessage());
-    return;
+    CRM_Core_Error::debug_log_message('API Error in get PriceFieldValue: ' . $e->getMessage());
+    return '';
   }
   return $result['values'][0]['id'];
 }
@@ -1066,21 +1055,24 @@ function _percentagepricesetfield_get_field_value($field_id) {
  */
 function percentagepricesetfield_civicrm_navigationMenu(&$menu) {
   _percentagepricesetfield_get_max_navID($menu, $max_navID);
-  _percentagepricesetfield_civix_insert_navigation_menu($menu, 'Administer/Customize Data and Screens', array(
-    'label' => ts('Percentage Price Set Field', array('domain' => 'com.joineryhq.percentagepricesetfield')),
-    'name' => 'Percentage Price Set Field',
-    'url' => 'civicrm/admin/percentagepricesetfield/settings',
-    'permission' => 'administer CiviCRM',
-    'operator' => 'AND',
-    'separator' => NULL,
-    'navID' => ++$max_navID,
-  ));
+  _percentagepricesetfield_civix_insert_navigation_menu(
+    $menu, 'Administer/Customize Data and Screens', array(
+      'label' => ts('Percentage Price Set Field', array('domain' => 'com.joineryhq.percentagepricesetfield')),
+      'name' => 'Percentage Price Set Field',
+      'url' => 'civicrm/admin/percentagepricesetfield/settings',
+      'permission' => 'administer CiviCRM',
+      'operator' => 'AND',
+      'separator' => NULL,
+      'navID' => ++$max_navID,
+    )
+  );
   _percentagepricesetfield_civix_navigationMenu($menu);
 }
 
 /**
  * For an array of menu items, recursively get the value of the greatest navID
  * attribute.
+ *
  * @param <type> $menu
  * @param <type> $max_navID
  */
@@ -1098,10 +1090,10 @@ function _percentagepricesetfield_get_max_navID(&$menu, &$max_navID = NULL) {
 /**
  * Prep default values to work well with setDefaults(), if needed.
  *
- * @param string $name The name of the field.
- * @param Mixed $value The field value.
+ * @param string $name  The name of the field.
+ * @param mixed $value The field value.
  *
- * @return Mixed The altered field value.
+ * @return mixed The altered field value.
  */
 function _percentagepricesetfield_preprocess_saved_value($name, $value) {
   switch ($name) {
@@ -1114,27 +1106,17 @@ function _percentagepricesetfield_preprocess_saved_value($name, $value) {
 
 function _percentagepricesetfield_allow_hide_and_force($content, $context, $tplName, $object, $_get) {
   $url_path = implode('/', $object->urlPath);
-  if (
-    $context == 'page'
-    && !empty($_get['priceSetId'])
-    && $url_path == 'civicrm/contact/view/contribution'
-    && CRM_Utils_Array::value('snippet', $_get) == 4
+  if ($context == 'page' && !empty($_get['priceSetId']) && $url_path == 'civicrm/contact/view/contribution' && CRM_Utils_Array::value('snippet', $_get) == 4
   ) {
     return FALSE;
   }
 
-  if (
-    $context == 'page'
-    && $url_path == 'civicrm/contact/view/participant'
-    && CRM_Utils_Array::value('snippet', $_get) == 4
+  if ($context == 'page' && $url_path == 'civicrm/contact/view/participant' && CRM_Utils_Array::value('snippet', $_get) == 4
   ) {
     return FALSE;
   }
 
-  if (
-    $context == 'form'
-    && $url_path == 'civicrm/event/participant/feeselection'
-    && CRM_Utils_Array::value('snippet', $_get) == 'json'
+  if ($context == 'form' && $url_path == 'civicrm/event/participant/feeselection' && CRM_Utils_Array::value('snippet', $_get) == 'json'
   ) {
     return FALSE;
   }
