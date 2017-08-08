@@ -53,7 +53,7 @@ CRM.percentagepricesetfield = {
   isPercentage: function isPercentage() {
     // Double-check to ensure we're honoring hide_and_force as well as latest
     // value.
-    return (CRM.vars.percentagepricesetfield.hide_and_force || CRM.percentagepricesetfield.is_percentage)
+    return (CRM.vars.percentagepricesetfield.hide_and_force || CRM.percentagepricesetfield.is_percentage);
   },
 
   /**
@@ -90,17 +90,17 @@ CRM.percentagepricesetfield = {
     }
 
     // Older CiviCRM versions used 'seperator' instead of 'separator'
-    var currency_separator
+    var currency_separator;
     if (typeof separator === 'undefined') {
-      currency_separator = seperator
+      currency_separator = seperator;
     }
     else {
-      currency_separator = separator
+      currency_separator = separator;
     }
 
     return formatMoney(finalTotal, 2, currency_separator, thousandMarker);
   }
-}
+};
 
 cj(function() {
   // Store the state of the checkbox, so we can restore it later.
