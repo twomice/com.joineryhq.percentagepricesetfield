@@ -1,6 +1,7 @@
 <?php
 
 require_once 'percentagepricesetfield.civix.php';
+define('PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL', 'percentagepricesetfield_NFMbsQAQVpVZkamC');
 
 /**
  * Implements hook_civicrm_copy().
@@ -243,7 +244,8 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_pageRun
  */
 function percentagepricesetfield_civicrm_pageRun(&$page) {
-  if ($page->getVar('_name') == 'CRM_Price_Page_Field') {
+  $page_name = $page->getVar('_name');
+  if ($page_name == 'CRM_Price_Page_Field') {
     // Get a list of all percentage fields in this prices set.
     $price_set_id = $page->getVar('_sid');
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id, FALSE);
@@ -260,6 +262,15 @@ function percentagepricesetfield_civicrm_pageRun(&$page) {
         $tpl_vars['priceField'][$field_id]['html_type_display'] = 'Percentage';
       }
     }
+  }
+  elseif ($page_name == 'CRM_Event_Page_EventInfo') {
+    $resource = CRM_Core_Resources::singleton();
+    $resource->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/public_event_info.js', 100, 'page-footer');
+
+    $vars = array(
+      'PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL' => PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL,
+    );
+    $resource->addVars('percentagepricesetfield', $vars);
   }
 }
 
@@ -722,7 +733,7 @@ function _percentagepricesetfield_rectify_price_options($field_values) {
       'price_field_value', 'create', array(
         'price_field_id' => $field_id,
         'name' => '_',
-        'label' => 'one',
+        'label' => PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL,
         'amount' => '1',
         'financial_type_id' => $field_values['financial_type_id'],
       )

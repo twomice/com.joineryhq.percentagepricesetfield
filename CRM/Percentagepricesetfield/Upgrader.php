@@ -102,6 +102,27 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Percentagepricesetfield_U
   }
 
   /**
+   * Update percentage price set field option label to use PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL
+   *
+   * @return TRUE on success
+   * @throws Exception
+   */
+  public function upgrade_1102() {
+
+    $query = "
+      UPDATE civicrm_percentagepricesetfield ppf
+        INNER JOIN civicrm_price_field pf ON pf.id = ppf.field_id
+        INNER JOIN civicrm_price_field_value pfv ON pfv.price_field_id = pf.id
+      SET
+        pfv.label = '" . PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL . "'
+    ";
+
+    CRM_Core_DAO::executeQuery($query, $query);
+
+    return TRUE;
+  }
+
+  /**
    * Example: Run an external SQL script
    *
    * @return TRUE on success
