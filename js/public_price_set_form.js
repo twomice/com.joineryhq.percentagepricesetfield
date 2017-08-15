@@ -37,7 +37,9 @@ CRM.percentagepricesetfield = {
       // Restore the previous state of the percentage checkbox.
       cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', CRM.percentagepricesetfield.isPercentage());
       // Dispaly the option again.
-      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').show();
+      if (!CRM.vars.percentagepricesetfield.hide_and_force) {
+        cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').show();
+      }
     }
     // Re-calculate the total-with-percentage; in the lines above, we manipulated
     // the state of the checkbox but did not update the total, so we need to
@@ -109,7 +111,7 @@ cj(function() {
   if (CRM.vars.percentagepricesetfield.hide_and_force) {
     // Hide and force if so configured.
     cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', true);
-    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.price-set-row').hide();
+    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
   }
 
   // Add an onChange handler for all of the payment method options.
