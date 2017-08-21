@@ -1,6 +1,7 @@
 /**
  * Custom JavaScript functions for the form at /civicrm/admin/price/field.
  */
+/*global CRM, ts */
 cj(function($) {
   // Override option_html_type() with our own version of it.
   // This is necessary because div#html_type has this function as an onChange
@@ -53,6 +54,18 @@ cj(function($) {
     }
   };
 
+  var percentagepricesetfield_disable_payment_methods_change = function() {
+    var msg_id = 'disable_payment_methods_message';
+    var msg = ts('"Required" setting not available while "Disable for payment methods" setting is enabled.');
+    CRM.$('em#'+ msg_id).remove();
+    if (CRM.$('input[id^="percentagepricesetfield_disable_payment_methods_"]:checked').length) {
+      CRM.$('input#is_required').hide().after('<em id="' + msg_id + '">' +  msg + '</em>');
+    }
+    else {
+      CRM.$('input#is_required').show();
+    }
+  };
+
   // Move bhfe fields to before price-block. ("bhfe" or "BeforeHookFormElements"
   // fields are added in this extension's buildForm hook.)
   // First create a container to hold these fields, including two separate
@@ -84,12 +97,12 @@ cj(function($) {
   });
   cj('div#percentagepricesetfield-block td').removeClass('nowrap');
 
-  // Freeze hide-and-force checkbox if so instructed. See "NOTE ON FREEZING 
+  // Freeze hide-and-force checkbox if so instructed. See "NOTE ON FREEZING
   // HIDE-AND-FORCE" in percentagepricesetfield.php.
   if (CRM.vars.percentagepricesetfield.hide_and_force_element_freeze) {
-    CRM.$('#percentagepricesetfield_hide_and_force').hide().after('[x]');    
+    CRM.$('#percentagepricesetfield_hide_and_force').hide().after('[x]');
   }
-  // 
+  //
   // Append any descriptions for bhfe fields.
   for (var i in CRM.vars.percentagepricesetfield.descriptions) {
     cj('tr#tr-'+ i +' td.input').append('<div class="description">'+ CRM.vars.percentagepricesetfield.descriptions[i] +'</div>');
@@ -126,11 +139,17 @@ cj(function($) {
   // Add change handler for "is percentage" checkbox
   cj('input#is_percentagepricesetfield').change(is_percentagepricesetfield_change);
 
+  // Add change handler for "disable for payment method" checkbox
+  CRM.$('input[id^="percentagepricesetfield_disable_payment_methods_"]').change(percentagepricesetfield_disable_payment_methods_change);
+
   // Fire the onChange event handler for the html_type field. This adjusts form layout
   // to properly support existing percentage priceset fields.
   // Note: on "new price field" forms, we could call this as cj('#html_type').change();
   // but on "edit price field" forms, #html_type has no onChange event handler.
   // So we call the function directly in both cases.
   option_html_type();
+
+  // Fire the onChange event handler for "disable for payment method" checkbox.
+  percentagepricesetfield_disable_payment_methods_change();
 });
 

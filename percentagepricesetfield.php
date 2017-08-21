@@ -403,17 +403,18 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
 }
 
 /**
- * Determine whether or not to apply the percentage to tax amounts, for a given
- * percentage field.
+ * Get the specified value in the stored configuration settings for a given
+ * percentage field, incorporating any globally overriding settings.
  *
- * @param  Integer $field_id The ID of the percentage field.
+ * @param int $field_id The ID of the percentage field.
+ * @param string $setting_name The name of the value to retrieve.
  * @return Bool
  */
 function _percentagepricesetfield_get_setting_value($field_id, $setting_name) {
   $value = _percentagepricesetfield_get_setting_value_override($setting_name);
   if ($value === NULL) {
     $values = _percentagepricesetfield_get_settings($field_id);
-    $value = $values[$setting_name];
+    $value = CRM_Utils_Array::value($setting_name, $values);
   }
   return $value;
 }
@@ -435,7 +436,7 @@ function _percentagepricesetfield_get_setting_value_override($setting_name) {
           'return' => array("percentagepricesetfield_hide_and_force_all"),
         )
       );
-      $value = $result['values'][0]['percentagepricesetfield_hide_and_force_all'];
+      $value = CRM_Utils_Array::value('percentagepricesetfield_hide_and_force_all', $result['values'][0]);
       if ((bool) $value) {
         return $value;
       }
@@ -529,6 +530,17 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
     // Remove this field's label (we copied it to the checkbox itself a few lines
     // above.
     $field->_label = '';
+
+    // If disable-per-payment-method, we must ignore any "Required" setting for
+    // the percentage field.
+    // (https://github.com/twomice/com.joineryhq.percentagepricesetfield/issues/19)
+    if (!empty(_percentagepricesetfield_get_setting_value($field_id, 'disable_payment_methods'))) {
+      foreach ($form->_required as $id => $required_field) {
+        if ($required_field == "price_{$field_id}") {
+          unset($form->_required[$id]);
+        }
+      }
+    }
   }
 }
 
@@ -579,6 +591,14 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     }
     // Never display amount for a percentage field.
     $form->_submitValues['is_display_amounts'] = 0;
+  }
+
+  // On submit, whether new or existing field:
+  if ($form->_flagSubmitted && $form->_submitValues['html_type'] == 'CheckBox' && $form->_submitValues['is_percentagepricesetfield']) {
+    // Remove the Required setting if the "disable for payment methods" is in use.
+    if (!empty(CRM_Utils_Array::value('percentagepricesetfield_disable_payment_methods', $form->_submitValues))) {
+      $form->_submitValues['is_required'] = 0;
+    }
   }
 
   // Add our custom JavaScript file.
