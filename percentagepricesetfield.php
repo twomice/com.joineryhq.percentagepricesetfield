@@ -83,6 +83,7 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Contribute_Form_Contribution':
     case 'CRM_Event_Form_Participant':
+    case 'CRM_Event_Form_Registration_AdditionalParticipant':
       _percentagepricesetfield_buildForm_public_price_set_form($form);
       break;
 
@@ -229,6 +230,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
       'percentage_checkbox_id' => "price_{$field_id}_{$field_value}",
       'hide_and_force' => (int) ($allow_hide_and_force && _percentagepricesetfield_get_setting_value($field_id, 'hide_and_force')),
       'disable_payment_methods' => _percentagepricesetfield_get_setting_value($field_id, 'disable_payment_methods'),
+      'payment_processor_id' => CRM_Utils_Array::value('id', $object->_paymentProcessor),
     );
     $resource = CRM_Core_Resources::singleton();
     $content .= '<script type="text/javascript">';

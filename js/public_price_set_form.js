@@ -21,7 +21,12 @@ CRM.percentagepricesetfield = {
    * payment method.
    */
   changePaymentProcessor: function changePaymentProcessor() {
+
     var selected_payment_method = cj('input[name="payment_processor_id"]:checked').val();
+    if (typeof selected_payment_method == 'undefined') {
+      selected_payment_method = CRM.vars.percentagepricesetfield.payment_processor_id
+    }
+
     if (CRM.vars.percentagepricesetfield.disable_payment_methods[selected_payment_method]) {
 
       // Hide the option.
