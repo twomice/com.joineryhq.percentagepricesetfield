@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS `civicrm_percentagepricesetfield` (
   `percentage` float NOT NULL COMMENT 'Percentage to apply',
   `financial_type_id` int(11) NOT NULL COMMENT 'financial_type_id of the first option of the checkbox group',
   `apply_to_taxes` tinyint(4) DEFAULT '1' COMMENT 'Should this percentage be applied on top of taxes',
-  `hide_and_force` tinyint(4) DEFAULT '1' COMMENT 'Should this percentage be applied always, and the field hidden',
+  `hide_and_force` tinyint(4) DEFAULT '0' COMMENT 'Should this percentage be applied always, and the field hidden',
+  `is_default` tinyint(4) DEFAULT '0' COMMENT 'Should the percentage option be checked by default',
   `disable_payment_methods` varchar(255) NOT NULL COMMENT 'Concatenated string of payment processor IDs',
   PRIMARY KEY (`id`),
   UNIQUE KEY `field_id` (`field_id`)

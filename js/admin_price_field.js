@@ -23,6 +23,23 @@ cj(function($) {
   };
 
   /**
+   * Change handler for hide-and-force field.
+   */
+  var hide_and_force_change = function() {
+    if (cj('#percentagepricesetfield_hide_and_force').is(':checked')) {
+      // If hide-and-force is true, then hide the is_default checkbox and show
+      // an [x] to indicate the value is forced.
+      cj('#percentagepricesetfield_is_default').hide().after('<span id="percentagepricesetfield_is_default_x">[x]</span>');
+    }
+    else {
+      // If hide-and-force is false, then show the is_default checkbox and hide
+      // the [x] indicator.
+      cj('#percentagepricesetfield_is_default').show();
+      cj('#percentagepricesetfield_is_default_x').remove();
+    }
+  }
+
+  /**
    * OnChange handler for is_percentagepricesetfield checkbox.
    * If html_type field is "CheckBox", show and hide some relevant sections,
    * depending on whether the is_percentagepricesetfield checkbox is checked.
@@ -101,7 +118,16 @@ cj(function($) {
   // HIDE-AND-FORCE" in percentagepricesetfield.php.
   if (CRM.vars.percentagepricesetfield.hide_and_force_element_freeze) {
     CRM.$('#percentagepricesetfield_hide_and_force').hide().after('[x]');
+    // Also freeze the is_default checkbox, since it will be forced to true
+    // whenever hide-and-force is true.
+    CRM.$('#percentagepricesetfield_is_default').hide().after('[x]');
   }
+  else {
+    // If the global hide-and-force-all is false, then hide-and-force might be
+    // anything, so run its change handler for appropriate display adjustements.
+    hide_and_force_change();
+  }
+
   //
   // Append any descriptions for bhfe fields.
   for (var i in CRM.vars.percentagepricesetfield.descriptions) {
@@ -138,6 +164,9 @@ cj(function($) {
 
   // Add change handler for "is percentage" checkbox
   cj('input#is_percentagepricesetfield').change(is_percentagepricesetfield_change);
+
+  // Add change handler for "hide and force" checkbox
+  cj('#percentagepricesetfield_hide_and_force').change(hide_and_force_change)
 
   // Add change handler for "disable for payment method" checkbox
   CRM.$('input[id^="percentagepricesetfield_disable_payment_methods_"]').change(percentagepricesetfield_disable_payment_methods_change);

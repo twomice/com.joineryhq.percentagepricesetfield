@@ -123,6 +123,21 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Percentagepricesetfield_U
   }
 
   /**
+   * Add is_default column to civicrm_percentagepricesetfield table.
+   *
+   * @return TRUE on success
+   * @throws Exception
+   */
+  public function upgrade_1103() {
+    $query = "ALTER TABLE  civicrm_percentagepricesetfield
+      ADD is_default TINYINT NULL DEFAULT '0' COMMENT 'Should the percentage option be checked by default'
+    ";
+    CRM_Core_DAO::executeQuery($query);
+
+    return TRUE;
+  }
+
+  /**
    * Example: Run an external SQL script
    *
    * @return TRUE on success

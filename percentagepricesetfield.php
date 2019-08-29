@@ -229,6 +229,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
       'percentage' => _percentagepricesetfield_get_percentage($price_set_id),
       'percentage_checkbox_id' => "price_{$field_id}_{$field_value}",
       'hide_and_force' => (int) ($allow_hide_and_force && _percentagepricesetfield_get_setting_value($field_id, 'hide_and_force')),
+      'is_default' => _percentagepricesetfield_get_setting_value($field_id, 'is_default'),
       'disable_payment_methods' => _percentagepricesetfield_get_setting_value($field_id, 'disable_payment_methods'),
       'payment_processor_id' => CRM_Utils_Array::value('id', $object->_paymentProcessor),
     );
@@ -619,6 +620,9 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $hide_and_force_element = $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', ts('Hide checkbox and force to "yes"'));
   $descriptions['percentagepricesetfield_hide_and_force'] = ts('This option will force the additional percentage to be applied, and hide the check box, in front-end forms. (Additional percentage is always an option in back-office forms.)');
 
+  $is_default_element = $form->addElement('checkbox', 'percentagepricesetfield_is_default', ts('Checked by default'));
+  $descriptions['percentagepricesetfield_is_default'] = ts('Cause the check-box to be checked by default? This option is automatically selected if the above "Hide and force" option is selected.');
+
   // Support global "hide and force" config option; if it's TRUE, then tell JS
   // to freeze this field, and adjust its description.
   // NOTE ON FREEZING HIDE-AND-FORCE: We don't use
@@ -630,7 +634,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $hide_and_force_element_freeze = FALSE;
   if (_percentagepricesetfield_get_setting_value_override('hide_and_force')) {
     $hide_and_force_element_freeze = TRUE;
-    $descriptions['percentagepricesetfield_hide_and_force'] = ts(
+    $descriptions['percentagepricesetfield_hide_and_force'] .= ts(
       'This setting overridden by the site-wide configuration at <a href="%1">%2</a>.', array(
         1 => CRM_Utils_System::url('civicrm/admin/percentagepricesetfield/settings', 'reset=1'),
         2 => ts('Percentage Price Set Field: Settings'),
@@ -668,6 +672,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $bhfe[] = 'percentagepricesetfield_percentage';
   $bhfe[] = 'percentagepricesetfield_apply_to_taxes';
   $bhfe[] = 'percentagepricesetfield_hide_and_force';
+  $bhfe[] = 'percentagepricesetfield_is_default';
   $bhfe[] = 'percentagepricesetfield_disable_payment_methods';
   $form->assign('beginHookFormElements', $bhfe);
 
@@ -781,6 +786,7 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
       'financial_type_id' => (int) $values['percentagepricesetfield_financial_type_id'],
       'apply_to_taxes' => (int) !empty($values['percentagepricesetfield_apply_to_taxes']),
       'hide_and_force' => (int) !empty($values['percentagepricesetfield_hide_and_force']),
+      'is_default' => (int) !empty($values['percentagepricesetfield_is_default']),
       'disable_payment_methods' => (
       !empty($values['percentagepricesetfield_disable_payment_methods']) ?
       CRM_Utils_Array::implodePadded(array_keys($values['percentagepricesetfield_disable_payment_methods'])) :
@@ -834,6 +840,7 @@ function _percentagepricesetfield_get_valid_fields() {
     'financial_type_id' => 'Integer',
     'apply_to_taxes' => 'Boolean',
     'hide_and_force' => 'Boolean',
+    'is_default' => 'Boolean',
     'disable_payment_methods' => 'String',
   );
   return $valid_fields;
