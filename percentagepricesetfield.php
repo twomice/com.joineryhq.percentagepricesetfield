@@ -49,10 +49,6 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
   if (!empty($form->_priceSetId)) {
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId, TRUE);
     $field_id = array_pop($field_ids);
-    // This checkbox field should have exactly one option. We need that option
-    // value because the checkbox element's "id" attribute will be
-    // "price_[field_id]_[field_value]".
-    $field_value = _percentagepricesetfield_get_field_value($field_id);
 
     if (!empty($form->_submitValues)) {
       // If this form is being submitted, we'll adjust the line item label, if
@@ -220,14 +216,14 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
     // value because the checkbox element's "id" attribute will be
     // "price_[field_id]_[field_value]".
     $field_value = _percentagepricesetfield_get_field_value($field_id);
-    if (!$field_value) {
+    if (!$field_value_id = CRM_Utils_Array::value('id', $field_value)) {
       return;
     }
 
     // Insert our JavaScript code and variables.
     $vars = array(
       'percentage' => _percentagepricesetfield_get_percentage($price_set_id),
-      'percentage_checkbox_id' => "price_{$field_id}_{$field_value}",
+      'percentage_checkbox_id' => "price_{$field_id}_{$field_value_id}",
       'hide_and_force' => (int) ($allow_hide_and_force && _percentagepricesetfield_get_setting_value($field_id, 'hide_and_force')),
       'is_default' => _percentagepricesetfield_get_setting_value($field_id, 'is_default'),
       'disable_payment_methods' => _percentagepricesetfield_get_setting_value($field_id, 'disable_payment_methods'),
@@ -418,6 +414,11 @@ function _percentagepricesetfield_get_setting_value($field_id, $setting_name) {
   if ($value === NULL) {
     $values = _percentagepricesetfield_get_settings($field_id);
     $value = CRM_Utils_Array::value($setting_name, $values);
+
+    if ($value === NULL) {
+      $field_value = _percentagepricesetfield_get_field_value($field_id);
+      $value = CRM_Utils_Array::value($setting_name, $field_value);
+    }
   }
   return $value;
 }
@@ -634,13 +635,13 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $hide_and_force_element_freeze = FALSE;
   if (_percentagepricesetfield_get_setting_value_override('hide_and_force')) {
     $hide_and_force_element_freeze = TRUE;
-    $descriptions['percentagepricesetfield_hide_and_force'] .= ts(
-      'This setting overridden by the site-wide configuration at <a href="%1">%2</a>.', array(
+    $descriptions['percentagepricesetfield_hide_and_force'] = ts(
+      '<strong>This setting overridden by the site-wide configuration at <a href="%1">%2</a>.</strong> ', array(
         1 => CRM_Utils_System::url('civicrm/admin/percentagepricesetfield/settings', 'reset=1'),
         2 => ts('Percentage Price Set Field: Settings'),
         'domain' => 'org.joineryhq.percentagepricesetfield',
       )
-    );
+    ) . $descriptions['percentagepricesetfield_hide_and_force'];
   }
 
   // Create a group of "disable for payment processors" with one checkbox per
@@ -712,6 +713,9 @@ function _percentagepricesetfield_setDefaults_adminPriceField(&$form) {
       foreach ($values as $name => $value) {
         $defaults['percentagepricesetfield_' . $name] = $value;
       }
+      // The is_default property is stored in the price field option, not in the
+      // percentagepricesetfield table, so we have to fetch it specifically.
+      $defaults['percentagepricesetfield_is_default'] = _percentagepricesetfield_get_setting_value($field_id, 'is_default');
     }
 
     $form->setDefaults($defaults);
@@ -841,7 +845,6 @@ function _percentagepricesetfield_get_valid_fields() {
     'financial_type_id' => 'Integer',
     'apply_to_taxes' => 'Boolean',
     'hide_and_force' => 'Boolean',
-    'is_default' => 'Boolean',
     'disable_payment_methods' => 'String',
   );
   return $valid_fields;
@@ -1086,7 +1089,7 @@ function _percentagepricesetfield_get_field_value($field_id) {
     CRM_Core_Error::debug_log_message('API Error in get PriceFieldValue: ' . $e->getMessage());
     return '';
   }
-  return $result['values'][0]['id'];
+  return $result['values'][0];
 }
 
 /**

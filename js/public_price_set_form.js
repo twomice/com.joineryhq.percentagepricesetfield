@@ -9,7 +9,7 @@ CRM.percentagepricesetfield = {
   // Storage for most recent value of percentage checkbox, for use in cases
   // where we have to automatically disable it (e.g., when disabling the
   // percentage option based on the selected payment method).
-  is_percentage: false,
+  is_percentage: CRM.vars.percentagepricesetfield.is_default,
 
 
   storePercentageState: function storePercentageState() {
