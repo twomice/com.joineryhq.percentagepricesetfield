@@ -763,6 +763,7 @@ function _percentagepricesetfield_rectify_price_options($field_values) {
         'label' => PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL,
         'amount' => '1',
         'financial_type_id' => $field_values['financial_type_id'],
+        'is_default' => $field_values['is_default'],
       )
     );
   }
