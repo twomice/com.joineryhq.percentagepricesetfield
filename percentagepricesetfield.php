@@ -80,11 +80,8 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
     case 'CRM_Contribute_Form_Contribution':
     case 'CRM_Event_Form_Participant':
     case 'CRM_Event_Form_Registration_AdditionalParticipant':
-      _percentagepricesetfield_buildForm_public_price_set_form($form);
-      break;
-
     case 'CRM_Price_Form_Preview':
-      // TODO: Would be nice to get this working.
+      _percentagepricesetfield_buildForm_public_price_set_form($form);
       break;
   }
 }
@@ -556,8 +553,18 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
  * @return String "id" attribute, if any; otherwise FALSE.
  */
 function _percentagepricesetfield_get_form_percentage_field_id($form) {
-  if (!empty($form->_priceSetId)) {
-    $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId, TRUE);
+  $formName = get_class($form);
+  $priceSetId = NULL;
+  if ($formName == 'CRM_Price_Form_Preview') {
+    // For the preview form, we have to get it from $_REQUEST.
+    $priceSetId = CRM_Utils_Request::retrieve('sid', 'Int');
+  }
+  else {
+    // For other forms, it's a property of the form.
+    $priceSetId = $form->_priceSetId;
+  }
+  if (!empty($priceSetId)) {
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($priceSetId, TRUE);
     $field_id = array_shift($field_ids);
     if ($field_id) {
       if (array_key_exists("price_{$field_id}", $form->_elementIndex)) {
@@ -968,6 +975,27 @@ function _percentagepricesetfield_get_content_pricesetid_function($content, $con
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_public';
   }
+
+  if ($context == 'page' && $url_path == 'civicrm/admin/price' && CRM_Utils_Array::value('sid', $_get)
+  ) {
+    return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_preview';
+  }
+}
+
+/**
+ * Callback function to retrieve price set ID for a price set preview.
+ * form.
+ *
+ * @param string $content As in first argument to hook_civicrm_alterContent()
+ * @param string $context As in second argument to hook_civicrm_alterContent()
+ * @param string $tplName As in third argument to hook_civicrm_alterContent()
+ * @param object $object As in fourth argument to hook_civicrm_alterContent()
+ * @param array $_get Contents of $_GET.
+ *
+ * @return String The price set ID, if any; otherwise NULL.
+ */
+function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_preview($content, $context, $tplName, $object, $_get) {
+  return CRM_Utils_Array::value('sid', $_get);
 }
 
 /**
