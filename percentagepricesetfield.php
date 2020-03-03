@@ -951,11 +951,14 @@ function _percentagepricesetfield_update_field($field_values) {
  */
 function _percentagepricesetfield_get_content_pricesetid_function($content, $context, $tplName, $object, $_get) {
   $url_path = implode('/', $object->urlPath);
-  if ($context == 'page' && !empty($_get['priceSetId']) && $url_path == 'civicrm/contact/view/contribution' && CRM_Utils_Array::value('snippet', $_get) == 4
+  if (
+    $context == 'page'
+    && !empty($_get['priceSetId'])
+    && CRM_Utils_Array::value('snippet', $_get) == 4
+    && ($url_path == 'civicrm/contact/view/contribution' || $url_path == 'civicrm/contribute/add')
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_backoffice';
   }
-
   if ($context == 'page' && $url_path == 'civicrm/contact/view/participant' && CRM_Utils_Array::value('snippet', $_get) == 4
   ) {
     return '_percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_backoffice';
