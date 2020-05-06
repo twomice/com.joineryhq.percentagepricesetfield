@@ -24,7 +24,7 @@ CRM.percentagepricesetfield = {
 
     var selected_payment_method = cj('input[name="payment_processor_id"]:checked').val();
     if (typeof selected_payment_method == 'undefined') {
-      selected_payment_method = CRM.vars.percentagepricesetfield.payment_processor_id
+      selected_payment_method = CRM.vars.percentagepricesetfield.payment_processor_id;
     }
 
     if (CRM.vars.percentagepricesetfield.disable_payment_methods[selected_payment_method]) {
@@ -76,6 +76,29 @@ CRM.percentagepricesetfield = {
   },
 
   /**
+   * Format amount as money.
+   * 
+   * This function copied from CiviCRM's templates/CRM/Price/Form/Calculate.tpl in version 5.20.0
+   * (https://lab.civicrm.org/dev/core/-/blob/5.20.0/templates/CRM/Price/Form/Calculate.tpl#L192)
+   * then modified with non-functional changes to meet civilint's jshint criteria. 
+   * Also modified by renaming variables with more  descriptive names (original code
+   * relied on variables with names like c, d, t, j, etc.)
+   * 
+   * CRM.percentagepricesetfield.formatMoney(finalTotal, 2, currency_separator, thousandMarker);
+   */
+  formatMoney: function formatMoney(amount, precision, currencySeparator, thousandsMarker){
+    precision = isNaN(precision = Math.abs(precision)) ? 2 : precision;
+    currencySeparator = currencySeparator == undefined ? "," : currencySeparator;
+    thousandsMarker = thousandsMarker == undefined ? "." : thousandsMarker;
+    var negativeMarker = amount < 0 ? "-" : "";
+    // Unsure of the  meaning of 'i' here; todo: figure  this out and rename for more readable code.
+    var i = parseInt(amount = Math.abs(+amount || 0).toFixed(precision)) + "";
+    thousandsSplitLength = (thousandsSplitLength = i.length) > 3 ? thousandsSplitLength % 3 : 0;
+        
+    return negativeMarker + (thousandsSplitLength ? i.substr(0, thousandsSplitLength) + thousandsMarker : "") + i.substr(thousandsSplitLength).replace(/(\d{3})(?=\d)/g, "$1" + thousandsMarker) + (precision ? currencySeparator + Math.abs(amount - i).toFixed(precision).slice(2) : "");
+  },
+
+  /**
    * Calculate the correct total-plus-percentage amount.
    */
   calculateTotal: function calculateTotal() {
@@ -105,18 +128,8 @@ CRM.percentagepricesetfield = {
       currency_separator = separator;
     }
 
-    return formatMoney(finalTotal, 2, currency_separator, thousandMarker);
+    return CRM.percentagepricesetfield.formatMoney(finalTotal, 2, currency_separator, thousandMarker);
   }
-};
-
-function formatMoney (amount, c, d, t){
-  var n = amount,
-  c = isNaN(c = Math.abs(c)) ? 2 : c,
-  d = d == undefined ? "," : d,
-  t = t == undefined ? "." : t, s = n < 0 ? "-" : "",
-  i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "",
-  j = (j = i.length) > 3 ? j % 3 : 0;
-  return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
 };
 
 cj(function() {
@@ -152,6 +165,13 @@ cj(function() {
 
   // Note the monetary symbol for later use.
   CRM.percentagepricesetfield.monetarySymbol = cj('#pricevalue b').html();
+  if (undefined === CRM.percentagepricesetfield.monetarySymbol) {
+    // Later civicrm versions don't wrap the monetarSymbol in a <b> element -- and really why would they?
+    // So if  we still don't have a value for monetarySymbol, try getting
+    // the first non-space string in the pricevalue div (this is thought to be
+    // more likely to work in cases of multi-character symbols (e.g. "Lek")
+    CRM.percentagepricesetfield.monetarySymbol = cj('#pricevalue').html().split(' ')[0];
+  }
 
   // Add our function update-plus-percentage, as an event handler for all
   // price fields.
