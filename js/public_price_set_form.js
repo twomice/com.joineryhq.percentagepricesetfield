@@ -105,7 +105,7 @@ CRM.percentagepricesetfield = {
       currency_separator = separator;
     }
 
-    return formatMoney(finalTotal, 2, currency_separator, thousandMarker);
+    return CRM.formatMoney(finalTotal, 2, currency_separator, thousandMarker);
   }
 };
 
