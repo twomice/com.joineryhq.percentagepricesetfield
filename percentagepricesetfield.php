@@ -1,7 +1,7 @@
 <?php
 
 require_once 'percentagepricesetfield.civix.php';
-define('PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL', 'percentagepricesetfield_NFMbsQAQVpVZkamC');
+define('PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL', 'ERROR: percentagepricesetfield_NFMbsQAQVpVZkamC (Hint: Is the Percentage Price Set Field extension enabled?)');
 
 /**
  * Implements hook_civicrm_copy().
