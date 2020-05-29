@@ -11,6 +11,8 @@ CRM.percentagepricesetfield = {
   // percentage option based on the selected payment method).
   is_percentage: CRM.vars.percentagepricesetfield.is_default,
 
+  // Function storage for CiviCRM's original calculateTotalFee() function
+  originalCalculateTotalFee: window.calculateTotalFee,
 
   storePercentageState: function storePercentageState() {
     CRM.percentagepricesetfield.is_percentage = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
@@ -104,13 +106,10 @@ CRM.percentagepricesetfield = {
    * @returns float
    */
   calculateTotalFee: function calculateTotalFee() {
+    // Calculate total per original calculateTotalFee function:
+    var baseTotal = CRM.percentagepricesetfield.originalCalculateTotalFee();
+
     var finalTotal;
-    // Clean up formatted total number by removing non-numerical characters.
-    // FIXME: Move this to a new function that anticipates different decimal
-    // and thousands separators (e.g., uses 'separator' variable here instead
-    // of literal '.') Consider: http://stackoverflow.com/a/20716046
-    var regex = new RegExp('[^0-9.]', 'g');
-    var baseTotal = cj('#pricevalue').text().replace(regex, '').trim() * 1;
     if (cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
       var percentage = CRM.vars.percentagepricesetfield.percentage;
       var extra = (baseTotal*percentage/100);
@@ -127,7 +126,7 @@ CRM.percentagepricesetfield = {
    * Calculate the correct total-plus-percentage amount.
    */
   calculateTotal: function calculateTotal() {
-    var finalTotal = this.calculateTotalFee();
+    var finalTotal = CRM.percentagepricesetfield.calculateTotalFee();
 
     // Older CiviCRM versions used 'seperator' instead of 'separator'
     var currency_separator;
@@ -147,7 +146,6 @@ cj(function() {
   // called by various core and extension JS code (e.g., Stripe) to determine
   // the actual total to be charged. In the case of Stripe, this is required so
   // that the payment_intent matches the amount that is eventually charged.
-  originalCalculateTotalFee = window.calculateTotalFee;
   window.calculateTotalFee = CRM.percentagepricesetfield.calculateTotalFee;
 
   // Store the state of the checkbox, so we can restore it later.
