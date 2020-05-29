@@ -99,9 +99,11 @@ CRM.percentagepricesetfield = {
   },
 
   /**
-   * Calculate the correct total-plus-percentage amount.
+   * Function to override CiviCRM's window.calculateTotalFee()
+   *
+   * @returns float
    */
-  calculateTotal: function calculateTotal() {
+  calculateTotalFee: function calculateTotalFee() {
     var finalTotal;
     // Clean up formatted total number by removing non-numerical characters.
     // FIXME: Move this to a new function that anticipates different decimal
@@ -118,6 +120,14 @@ CRM.percentagepricesetfield = {
     else {
       finalTotal = baseTotal;
     }
+    return finalTotal;
+  },
+
+  /**
+   * Calculate the correct total-plus-percentage amount.
+   */
+  calculateTotal: function calculateTotal() {
+    var finalTotal = this.calculateTotalFee();
 
     // Older CiviCRM versions used 'seperator' instead of 'separator'
     var currency_separator;
@@ -133,6 +143,13 @@ CRM.percentagepricesetfield = {
 };
 
 cj(function() {
+  // Replace CiviCRM's window.calculateTotalFee with our own. This function is
+  // called by various core and extension JS code (e.g., Stripe) to determine
+  // the actual total to be charged. In the case of Stripe, this is required so
+  // that the payment_intent matches the amount that is eventually charged.
+  originalCalculateTotalFee = window.calculateTotalFee;
+  window.calculateTotalFee = CRM.percentagepricesetfield.calculateTotalFee;
+
   // Store the state of the checkbox, so we can restore it later.
   CRM.percentagepricesetfield.storePercentageState();
 
