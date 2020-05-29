@@ -48,6 +48,10 @@ function percentagepricesetfield_civicrm_copy($objectName, &$object) {
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
   if (!empty($form->_priceSetId)) {
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId, TRUE);
+    if (empty($field_ids)) {
+      // This form doesn't use a priceset with percentage fields. Just return.
+      return;
+    }
     $field_id = array_pop($field_ids);
 
     if (!empty($form->_submitValues)) {
