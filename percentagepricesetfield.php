@@ -61,6 +61,7 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
         // Apply percentage if "percentage" checkbox was checked.
         if (!empty($form->_submitValues["price_{$field_id}"][$option_id])) {
           $option['amount'] = _percentagepricesetfield_calculate_additional_amount($form);
+          $option['tax_amount'] = $option['amount'] * ($option['tax_rate'] / 100);
           $percent = _percentagepricesetfield_get_percentage($form->_priceSetId);
           $option['label'] = $percent . '%';
         }
@@ -221,9 +222,12 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
       return;
     }
 
+    $formObject = $args[3];
+    $taxRate = $formObject->_priceSet['fields'][$field_id]['options'][$field_value_id]['tax_rate'];
     // Insert our JavaScript code and variables.
     $vars = array(
       'percentage' => _percentagepricesetfield_get_percentage($price_set_id),
+      'tax_rate' => $taxRate,
       'percentage_checkbox_id' => "price_{$field_id}_{$field_value_id}",
       'hide_and_force' => (int) ($allow_hide_and_force && _percentagepricesetfield_get_setting_value($field_id, 'hide_and_force')),
       'is_default' => _percentagepricesetfield_get_setting_value($field_id, 'is_default'),
