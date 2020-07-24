@@ -8,8 +8,8 @@
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC43/QuickForm+Reference
  */
 class CRM_Percentagepricesetfield_Form_Settings extends CRM_Core_Form {
-  static $settingFilter = array('group' => 'percentagepricesetfield');
-  static $extensionName = 'com.joineryhq.percentagepricesetfield';
+  public static $settingFilter = array('group' => 'percentagepricesetfield');
+  public static $extensionName = 'com.joineryhq.percentagepricesetfield';
   private $_submittedValues = array();
   private $_settings = array();
 
@@ -29,6 +29,7 @@ class CRM_Percentagepricesetfield_Form_Settings extends CRM_Core_Form {
       $name = NULL
     );
   }
+
   public function buildQuickForm() {
     $settings = $this->_settings;
     $descriptions = array();
@@ -37,9 +38,12 @@ class CRM_Percentagepricesetfield_Form_Settings extends CRM_Core_Form {
         switch ($setting['html_type']) {
           case 'Select':
             $this->add(
-              $setting['html_type'], // field type
-              $setting['name'], // field name
-              $setting['title'], // field label
+              // field type
+              $setting['html_type'],
+              // field name
+              $setting['name'],
+              // field label
+              $setting['title'],
               $this->getSettingOptions($setting),
               NULL,
               $setting['html_attributes']
@@ -48,16 +52,20 @@ class CRM_Percentagepricesetfield_Form_Settings extends CRM_Core_Form {
 
           case 'CheckBox':
             $this->addCheckBox(
-              $setting['name'], // field name
-              $setting['title'], // field label
+              // field name
+              $setting['name'],
+              // field label
+              $setting['title'],
               array_flip($this->getSettingOptions($setting))
             );
             break;
 
           case 'Radio':
             $this->addRadio(
-              $setting['name'], // field name
-              $setting['title'], // field label
+              // field name
+              $setting['name'],
+              // field label
+              $setting['title'],
               $this->getSettingOptions($setting)
             );
             break;

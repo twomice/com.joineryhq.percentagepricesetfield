@@ -37,7 +37,7 @@ cj(function($) {
       cj('#percentagepricesetfield_is_default').show();
       cj('#percentagepricesetfield_is_default_x').remove();
     }
-  }
+  };
 
   /**
    * OnChange handler for is_percentagepricesetfield checkbox.
@@ -166,7 +166,7 @@ cj(function($) {
   cj('input#is_percentagepricesetfield').change(is_percentagepricesetfield_change);
 
   // Add change handler for "hide and force" checkbox
-  cj('#percentagepricesetfield_hide_and_force').change(hide_and_force_change)
+  cj('#percentagepricesetfield_hide_and_force').change(hide_and_force_change);
 
   // Add change handler for "disable for payment method" checkbox
   CRM.$('input[id^="percentagepricesetfield_disable_payment_methods_"]').change(percentagepricesetfield_disable_payment_methods_change);
