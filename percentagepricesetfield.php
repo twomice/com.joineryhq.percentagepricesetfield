@@ -530,7 +530,8 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
     // uses a custom format for this attribute, parsing it later in
     // JavaScript to auto-calculate the total (see
     // CRM/Price/Form/Calculate.tpl).
-    $element->_attributes['price'] = preg_replace('/(\["[^"]+",")[^|]+(\|.+)$/', '${1}0${2}', $element->_attributes['price']); // e.g., ["30","20||"]: change "20" to "0".
+    // e.g., ["30","20||"]: change "20" to "0".
+    $element->_attributes['price'] = preg_replace('/(\["[^"]+",")[^|]+(\|.+)$/', '${1}0${2}', $element->_attributes['price']);
     $element_id = $field->_name . '_' . $element->_attributes['id'];
 
     // Store $element_id in the form so we can easily access it elsewhere.
@@ -846,11 +847,6 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
 /**
  * Get a list of available data fields, each with its correct data type
  *
- * @return Array of fields, each with a data type matching a string type in
- *   CRM_Utils_Type::validate(). e.g.,
- *   array(
- *     'my_field' => 'String',
- *   );
  */
 function _percentagepricesetfield_get_valid_fields() {
   // Define fields with valid data types (as in CRM_Utils_Type::validate()).
@@ -1110,8 +1106,6 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_event_
 /**
  * Get the option value for the (exactly) one option that should exist for a
  * given percentage price set field.
- *
- * @param string Numeric $field_id System ID of the price set field.
  *
  * @return string Numeric value of the checkbox option.
  */
