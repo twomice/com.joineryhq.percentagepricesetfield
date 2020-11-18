@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `civicrm_percentagepricesetfield` (
   `disable_payment_methods` varchar(255) NOT NULL COMMENT 'Concatenated string of payment processor IDs',
   PRIMARY KEY (`id`),
   UNIQUE KEY `field_id` (`field_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Price set fields marked as "additional percentage" type.';
+) ENGINE=InnoDB COMMENT='Price set fields marked as "additional percentage" type.';
 
 --
 -- Constraints for table `civicrm_percentagepricesetfield`
