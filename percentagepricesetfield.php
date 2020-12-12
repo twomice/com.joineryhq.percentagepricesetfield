@@ -294,12 +294,12 @@ function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$fil
         unset($field_ids[$fid_key]);
       }
       if (!empty($field_ids)) {
-        $errors['is_percentagepricesetfield'] = ts('This price set already has a percentage field. Please disable or delete that field before creating a new one.');
+        $errors['is_percentagepricesetfield'] = E::ts('This price set already has a percentage field. Please disable or delete that field before creating a new one.');
       }
 
       // Ensure financial_type_id.
       if (!CRM_Utils_Array::value('percentagepricesetfield_financial_type_id', $fields)) {
-        $errors['financial_type_id'] = ts('Financial Type is required.');
+        $errors['financial_type_id'] = E::ts('Financial Type is required.');
       }
     }
   }
@@ -630,15 +630,15 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $descriptions = array();
 
   // Add our own fields to this form, to handle percentage fields
-  $form->addElement('checkbox', 'is_percentagepricesetfield', ts('Field calculates "Automatic Additional Percentage"'));
-  $form->addElement('text', 'percentagepricesetfield_', ts('Short label for line item'));
-  $form->addElement('text', 'percentagepricesetfield_percentage', ts('Percentage'));
-  $form->addElement('checkbox', 'percentagepricesetfield_apply_to_taxes', ts('Apply percentage to tax amounts'));
-  $hide_and_force_element = $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', ts('Hide checkbox and force to "yes"'));
-  $descriptions['percentagepricesetfield_hide_and_force'] = ts('This option will force the additional percentage to be applied, and hide the check box, in front-end forms. (Additional percentage is always an option in back-office forms.)');
+  $form->addElement('checkbox', 'is_percentagepricesetfield', E::ts('Field calculates "Automatic Additional Percentage"'));
+  $form->addElement('text', 'percentagepricesetfield_', E::ts('Short label for line item'));
+  $form->addElement('text', 'percentagepricesetfield_percentage', E::ts('Percentage'));
+  $form->addElement('checkbox', 'percentagepricesetfield_apply_to_taxes', E::ts('Apply percentage to tax amounts'));
+  $hide_and_force_element = $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', E::ts('Hide checkbox and force to "yes"'));
+  $descriptions['percentagepricesetfield_hide_and_force'] = E::ts('This option will force the additional percentage to be applied, and hide the check box, in front-end forms. (Additional percentage is always an option in back-office forms.)');
 
-  $is_default_element = $form->addElement('checkbox', 'percentagepricesetfield_is_default', ts('Checked by default'));
-  $descriptions['percentagepricesetfield_is_default'] = ts('Cause the check-box to be checked by default? This option is automatically selected if the above "Hide and force" option is selected.');
+  $is_default_element = $form->addElement('checkbox', 'percentagepricesetfield_is_default', E::ts('Checked by default'));
+  $descriptions['percentagepricesetfield_is_default'] = E::ts('Cause the check-box to be checked by default? This option is automatically selected if the above "Hide and force" option is selected.');
 
   // Support global "hide and force" config option; if it's TRUE, then tell JS
   // to freeze this field, and adjust its description.
@@ -651,10 +651,10 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $hide_and_force_element_freeze = FALSE;
   if (_percentagepricesetfield_get_setting_value_override('hide_and_force')) {
     $hide_and_force_element_freeze = TRUE;
-    $descriptions['percentagepricesetfield_hide_and_force'] = ts(
+    $descriptions['percentagepricesetfield_hide_and_force'] = E::ts(
       '<strong>This setting overridden by the site-wide configuration at <a href="%1">%2</a>.</strong> ', array(
         1 => CRM_Utils_System::url('civicrm/admin/percentagepricesetfield/settings', 'reset=1'),
-        2 => ts('Percentage Price Set Field: Settings'),
+        2 => E::ts('Percentage Price Set Field: Settings'),
         'domain' => 'org.joineryhq.percentagepricesetfield',
       )
     ) . $descriptions['percentagepricesetfield_hide_and_force'];
@@ -663,7 +663,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   // Create a group of "disable for payment processors" with one checkbox per
   // payment processor, plus "pay later"
   $payment_method_checkboxes = array(
-    $form->createElement('checkbox', '0', 0, ' ' . ts('Pay later (check)')),
+    $form->createElement('checkbox', '0', 0, ' ' . E::ts('Pay later (check)')),
   );
   $result = civicrm_api3(
     'PaymentProcessor', 'get', array(
@@ -676,8 +676,8 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   foreach ($result['values'] as $value) {
     $payment_method_checkboxes[] = $form->createElement('checkbox', $value['id'], $value['id'], ' ' . $value['name']);
   }
-  $form->addGroup($payment_method_checkboxes, 'percentagepricesetfield_disable_payment_methods', ts('Disable for payment methods'), '<br />');
-  $descriptions['percentagepricesetfield_disable_payment_methods'] = ts('Additional percentage option will be forced to "no" in front-end forms submitted with the selected payment method(s). (Additional percentage is always an option in back-office forms.)');
+  $form->addGroup($payment_method_checkboxes, 'percentagepricesetfield_disable_payment_methods', E::ts('Disable for payment methods'), '<br />');
+  $descriptions['percentagepricesetfield_disable_payment_methods'] = E::ts('Additional percentage option will be forced to "no" in front-end forms submitted with the selected payment method(s). (Additional percentage is always an option in back-office forms.)');
 
   // Assign bhfe fields to the template.
   $tpl = CRM_Core_Smarty::singleton();
@@ -1134,7 +1134,7 @@ function percentagepricesetfield_civicrm_navigationMenu(&$menu) {
   _percentagepricesetfield_get_max_navID($menu, $max_navID);
   _percentagepricesetfield_civix_insert_navigation_menu(
     $menu, 'Administer/Customize Data and Screens', array(
-      'label' => ts('Percentage Price Set Field', array('domain' => 'com.joineryhq.percentagepricesetfield')),
+      'label' => E::ts('Percentage Price Set Field', array('domain' => 'com.joineryhq.percentagepricesetfield')),
       'name' => 'Percentage Price Set Field',
       'url' => 'civicrm/admin/percentagepricesetfield/settings',
       'permission' => 'administer CiviCRM',
