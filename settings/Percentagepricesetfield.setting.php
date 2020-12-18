@@ -1,5 +1,7 @@
 <?php
 
+use CRM_Percentagepricesetfield_ExtensionUtil as E;
+
 return array(
   'percentagepricesetfield_hide_and_force_all' => array(
     'group_name' => 'Percentagepricesetfield Settings',

@@ -1,6 +1,7 @@
 <?php
 
 require_once 'percentagepricesetfield.civix.php';
+use CRM_Percentagepricesetfield_ExtensionUtil as E;
 define('PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL', 'ERROR: percentagepricesetfield_NFMbsQAQVpVZkamC (Hint: Is the Percentage Price Set Field extension enabled?)');
 
 /**

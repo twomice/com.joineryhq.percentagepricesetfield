@@ -7,6 +7,9 @@
  *
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC43/QuickForm+Reference
  */
+
+use CRM_Percentagepricesetfield_ExtensionUtil as E;
+
 class CRM_Percentagepricesetfield_Form_Settings extends CRM_Core_Form {
   public static $settingFilter = array('group' => 'percentagepricesetfield');
   public static $extensionName = 'com.joineryhq.percentagepricesetfield';
