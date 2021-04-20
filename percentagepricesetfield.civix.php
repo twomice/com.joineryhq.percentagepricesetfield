@@ -7,9 +7,9 @@
  * extension.
  */
 class CRM_Percentagepricesetfield_ExtensionUtil {
-  const SHORT_NAME = "percentagepricesetfield";
-  const LONG_NAME = "com.joineryhq.percentagepricesetfield";
-  const CLASS_PREFIX = "CRM_Percentagepricesetfield";
+  const SHORT_NAME = 'percentagepricesetfield';
+  const LONG_NAME = 'com.joineryhq.percentagepricesetfield';
+  const CLASS_PREFIX = 'CRM_Percentagepricesetfield';
 
   /**
    * Translate a string using the extension's domain.

@@ -127,7 +127,16 @@ function percentagepricesetfield_civicrm_xmlMenu(&$files) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
 function percentagepricesetfield_civicrm_install() {
-  return _percentagepricesetfield_civix_civicrm_install();
+  _percentagepricesetfield_civix_civicrm_install();
+}
+
+/**
+ * Implements hook_civicrm_postInstall().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_postInstall
+ */
+function percentagepricesetfield_civicrm_postInstall() {
+  _percentagepricesetfield_civix_civicrm_postInstall();
 }
 
 /**
@@ -136,7 +145,7 @@ function percentagepricesetfield_civicrm_install() {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
  */
 function percentagepricesetfield_civicrm_uninstall() {
-  return _percentagepricesetfield_civix_civicrm_uninstall();
+  _percentagepricesetfield_civix_civicrm_uninstall();
 }
 
 /**
@@ -145,7 +154,7 @@ function percentagepricesetfield_civicrm_uninstall() {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
  */
 function percentagepricesetfield_civicrm_enable() {
-  return _percentagepricesetfield_civix_civicrm_enable();
+  _percentagepricesetfield_civix_civicrm_enable();
 }
 
 /**
@@ -172,7 +181,7 @@ function percentagepricesetfield_civicrm_upgrade($op, CRM_Queue_Queue $queue = N
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
  */
 function percentagepricesetfield_civicrm_managed(&$entities) {
-  return _percentagepricesetfield_civix_civicrm_managed($entities);
+  _percentagepricesetfield_civix_civicrm_managed($entities);
 }
 
 /**
