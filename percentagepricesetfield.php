@@ -209,7 +209,7 @@ function percentagepricesetfield_civicrm_alterSettingsFolders(&$metaDataFolders 
  */
 function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplName, &$object) {
   $args = func_get_args();
-  $args['_GET'] = $_GET;
+  $args['_get'] = $_GET;
   if ($func = call_user_func_array('_percentagepricesetfield_get_content_pricesetid_function', $args)) {
     if (function_exists($func)) {
       $price_set_id = call_user_func_array($func, $args);
