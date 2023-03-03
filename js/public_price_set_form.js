@@ -115,7 +115,7 @@ CRM.percentagepricesetfield = {
       var extra = (baseTotal*percentage/100);
       var extra_tax = extra * (CRM.vars.percentagepricesetfield.tax_rate / 100);
       var total = extra + baseTotal + extra_tax;
-      finalTotal = Math.round(total*100)/100;
+      finalTotal = Math.round( (total + Number.EPSILON) *100)/100;
     }
     else {
       finalTotal = baseTotal;
