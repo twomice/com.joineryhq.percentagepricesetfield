@@ -13,8 +13,8 @@
     <author>Allen Shaw</author>
     <email>allen@joineryhq.com</email>
   </maintainer>
-  <releaseDate>2021-04-20</releaseDate>
-  <version>1.5.1</version>
+  <releaseDate>2023-03-02</releaseDate>
+  <version>1.5.2</version>
   <develStage>stable</develStage>
   <compatibility>
     <ver>4.7</ver>
