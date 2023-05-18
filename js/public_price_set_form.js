@@ -4,8 +4,6 @@
  */
 
 CRM.percentagepricesetfield = {
-  // Monetary symbol (e.g. '$') in use on the page.
-  monetarySymbol: '',
   // Storage for most recent value of percentage checkbox, for use in cases
   // where we have to automatically disable it (e.g., when disabling the
   // percentage option based on the selected payment method).
@@ -74,7 +72,8 @@ CRM.percentagepricesetfield = {
       // on the confirmation page), don't try to update it.
       return;
     }
-    cj('#percentagepricesetfield_pricevalue').html(CRM.percentagepricesetfield.monetarySymbol + ' ' + CRM.percentagepricesetfield.calculateTotal());
+    var total = CRM.percentagepricesetfield.calculateTotal();
+    cj('#percentagepricesetfield_pricevalue').html(CRM.formatMoney(total, false, moneyFormat));
   },
 
   /**
@@ -178,16 +177,6 @@ cj(function() {
   // Add the cloned div.
   myTotal.insertAfter(originalTotal);
   originalTotal.hide();
-
-  // Note the monetary symbol for later use.
-  CRM.percentagepricesetfield.monetarySymbol = cj('#pricevalue b').html();
-  if (undefined === CRM.percentagepricesetfield.monetarySymbol) {
-    // Later civicrm versions don't wrap the monetarSymbol in a <b> element -- and really why would they?
-    // So if  we still don't have a value for monetarySymbol, try getting
-    // the first non-space string in the pricevalue div (this is thought to be
-    // more likely to work in cases of multi-character symbols (e.g. "Lek")
-    CRM.percentagepricesetfield.monetarySymbol = cj('#pricevalue').html().split(' ')[0];
-  }
 
   // Add our function update-plus-percentage, as an event handler for all
   // price fields.
