@@ -79,13 +79,13 @@ CRM.percentagepricesetfield = {
 
   /**
    * Format amount as money.
-   * 
+   *
    * This function copied from CiviCRM's templates/CRM/Price/Form/Calculate.tpl in version 5.20.0
    * (https://lab.civicrm.org/dev/core/-/blob/5.20.0/templates/CRM/Price/Form/Calculate.tpl#L192)
-   * then modified with non-functional changes to meet civilint's jshint criteria. 
+   * then modified with non-functional changes to meet civilint's jshint criteria.
    * Also modified by renaming variables with more  descriptive names (original code
    * relied on variables with names like c, d, t, j, etc.)
-   * 
+   *
    * CRM.percentagepricesetfield.formatMoney(finalTotal, 2, currency_separator, thousandMarker);
    */
   formatMoney: function formatMoney(amount, precision, currencySeparator, thousandsMarker){
@@ -96,7 +96,7 @@ CRM.percentagepricesetfield = {
     // Unsure of the  meaning of 'i' here; todo: figure  this out and rename for more readable code.
     var i = parseInt(amount = Math.abs(+amount || 0).toFixed(precision)) + "";
     thousandsSplitLength = (thousandsSplitLength = i.length) > 3 ? thousandsSplitLength % 3 : 0;
-        
+
     return negativeMarker + (thousandsSplitLength ? i.substr(0, thousandsSplitLength) + thousandsMarker : "") + i.substr(thousandsSplitLength).replace(/(\d{3})(?=\d)/g, "$1" + thousandsMarker) + (precision ? currencySeparator + Math.abs(amount - i).toFixed(precision).slice(2) : "");
   },
 
@@ -186,7 +186,7 @@ cj(function() {
     // So if  we still don't have a value for monetarySymbol, try getting
     // the first non-space string in the pricevalue div (this is thought to be
     // more likely to work in cases of multi-character symbols (e.g. "Lek")
-    CRM.percentagepricesetfield.monetarySymbol = cj('#pricevalue').html().split(' ')[0];
+    CRM.percentagepricesetfield.monetarySymbol = cj('#pricevalue').html().match(/[\D]*/)[0];
   }
 
   // Add our function update-plus-percentage, as an event handler for all
