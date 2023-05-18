@@ -186,7 +186,7 @@ cj(function() {
     // So if  we still don't have a value for monetarySymbol, try getting
     // the first non-space string in the pricevalue div (this is thought to be
     // more likely to work in cases of multi-character symbols (e.g. "Lek")
-    CRM.percentagepricesetfield.monetarySymbol = cj('#pricevalue').html().split(' ')[0];
+    CRM.percentagepricesetfield.monetarySymbol = cj('#pricevalue').html().slice(0,1);
   }
 
   // Add our function update-plus-percentage, as an event handler for all
