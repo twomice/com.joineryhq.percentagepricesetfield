@@ -13,15 +13,25 @@
     <author>Allen Shaw</author>
     <email>allen@joineryhq.com</email>
   </maintainer>
-  <releaseDate>2023-03-02</releaseDate>
-  <version>1.5.2</version>
+  <releaseDate>2024-04-29</releaseDate>
+  <version>1.5.3</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>4.7</ver>
-    <ver>5.0</ver>
+    <ver>5.68</ver>
   </compatibility>
   <comments>Initial development sponsored by the Vestibular Disorders Assocation.</comments>
   <civix>
     <namespace>CRM/Percentagepricesetfield</namespace>
+    <format>23.02.1</format>
   </civix>
+  <mixins>
+    <mixin>menu-xml@1.0.0</mixin>
+    <mixin>setting-php@1.0.0</mixin>
+    <mixin>smarty-v2@1.0.1</mixin>
+  </mixins>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+  <upgrader>CRM_Percentagepricesetfield_Upgrader</upgrader>
 </extension>
