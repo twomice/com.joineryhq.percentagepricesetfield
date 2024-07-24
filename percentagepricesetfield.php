@@ -2,6 +2,7 @@
 
 require_once 'percentagepricesetfield.civix.php';
 use CRM_Percentagepricesetfield_ExtensionUtil as E;
+
 define('PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL', 'ERROR: percentagepricesetfield_NFMbsQAQVpVZkamC (Hint: Is the Percentage Price Set Field extension enabled?)');
 
 /**
@@ -10,11 +11,16 @@ define('PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL', 'ERROR: percentagepricesetfi
 function percentagepricesetfield_civicrm_copy($objectName, &$object) {
   if (strtolower($objectName) == 'set') {
     // Get the price set that this one was copied from, basd on the convention
-    // that copied price sets always have '__Copy_id_[N]_' appended
-    // to their name, where [N] is an integer (Note: it's often, but not always,
-    // the ID of the new price set, because N is calculated using max(id)+1, and
-    // max(id) is not always equivalent to the next serial ID.)
-    $original_price_set_name = preg_replace('/__Copy_id_[0-9]+_$/', '', $object->name);
+    // that copied price sets always have '__Copy_id_[N]_' or '_Copy_id_[N]_' appended
+    // to their name, where [N] is an integer.
+    // Notes:
+    // - [N] is often, but not always, the ID of the new price set, because N is
+    //   calculated using max(id)+1, and max(id) is not always equivalent to the
+    //   next serial ID.)
+    // - Note the difference between leading "__" and leading "_" in the appended
+    //   strings. This seems to vary by CiviCRM version, older versions using two
+    //   underscores, and newer versions using only one.
+    $original_price_set_name = preg_replace('/_+Copy_id_[0-9]+_$/', '', $object->name);
     $params = array(
       'name' => $original_price_set_name,
     );
