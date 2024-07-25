@@ -72,31 +72,8 @@ CRM.percentagepricesetfield = {
       // on the confirmation page), don't try to update it.
       return;
     }
-    var total = CRM.percentagepricesetfield.calculateTotal();
+    var total = CRM.percentagepricesetfield.calculateTotalFee();
     cj('#percentagepricesetfield_pricevalue').html(CRM.formatMoney(total, false, moneyFormat));
-  },
-
-  /**
-   * Format amount as money.
-   * 
-   * This function copied from CiviCRM's templates/CRM/Price/Form/Calculate.tpl in version 5.20.0
-   * (https://lab.civicrm.org/dev/core/-/blob/5.20.0/templates/CRM/Price/Form/Calculate.tpl#L192)
-   * then modified with non-functional changes to meet civilint's jshint criteria. 
-   * Also modified by renaming variables with more  descriptive names (original code
-   * relied on variables with names like c, d, t, j, etc.)
-   * 
-   * CRM.percentagepricesetfield.formatMoney(finalTotal, 2, currency_separator, thousandMarker);
-   */
-  formatMoney: function formatMoney(amount, precision, currencySeparator, thousandsMarker){
-    precision = isNaN(precision = Math.abs(precision)) ? 2 : precision;
-    currencySeparator = currencySeparator == undefined ? "," : currencySeparator;
-    thousandsMarker = thousandsMarker == undefined ? "." : thousandsMarker;
-    var negativeMarker = amount < 0 ? "-" : "";
-    // Unsure of the  meaning of 'i' here; todo: figure  this out and rename for more readable code.
-    var i = parseInt(amount = Math.abs(+amount || 0).toFixed(precision)) + "";
-    thousandsSplitLength = (thousandsSplitLength = i.length) > 3 ? thousandsSplitLength % 3 : 0;
-        
-    return negativeMarker + (thousandsSplitLength ? i.substr(0, thousandsSplitLength) + thousandsMarker : "") + i.substr(thousandsSplitLength).replace(/(\d{3})(?=\d)/g, "$1" + thousandsMarker) + (precision ? currencySeparator + Math.abs(amount - i).toFixed(precision).slice(2) : "");
   },
 
   /**
@@ -122,23 +99,6 @@ CRM.percentagepricesetfield = {
     return finalTotal;
   },
 
-  /**
-   * Calculate the correct total-plus-percentage amount.
-   */
-  calculateTotal: function calculateTotal() {
-    var finalTotal = CRM.percentagepricesetfield.calculateTotalFee();
-
-    // Older CiviCRM versions used 'seperator' instead of 'separator'
-    var currency_separator;
-    if (typeof separator === 'undefined') {
-      currency_separator = seperator;
-    }
-    else {
-      currency_separator = separator;
-    }
-
-    return CRM.percentagepricesetfield.formatMoney(finalTotal, 2, currency_separator, thousandMarker);
-  }
 };
 
 cj(function() {
