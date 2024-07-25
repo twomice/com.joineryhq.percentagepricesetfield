@@ -119,15 +119,6 @@ function percentagepricesetfield_civicrm_config(&$config) {
 }
 
 /**
- * Implements hook_civicrm_xmlMenu().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_xmlMenu
- */
-function percentagepricesetfield_civicrm_xmlMenu(&$files) {
-  _percentagepricesetfield_civix_civicrm_xmlMenu($files);
-}
-
-/**
  * Implements hook_civicrm_install().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
@@ -137,75 +128,12 @@ function percentagepricesetfield_civicrm_install() {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_postInstall
- */
-function percentagepricesetfield_civicrm_postInstall() {
-  _percentagepricesetfield_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
- */
-function percentagepricesetfield_civicrm_uninstall() {
-  _percentagepricesetfield_civix_civicrm_uninstall();
-}
-
-/**
  * Implements hook_civicrm_enable().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
  */
 function percentagepricesetfield_civicrm_enable() {
   _percentagepricesetfield_civix_civicrm_enable();
-}
-
-/**
- * Implements hook_civicrm_disable().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
- */
-function percentagepricesetfield_civicrm_disable() {
-  return _percentagepricesetfield_civix_civicrm_disable();
-}
-
-/**
- * Implements hook_civicrm_upgrade().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
- */
-function percentagepricesetfield_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _percentagepricesetfield_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implements hook_civicrm_managed().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
- */
-function percentagepricesetfield_civicrm_managed(&$entities) {
-  _percentagepricesetfield_civix_civicrm_managed($entities);
-}
-
-/**
- * Implements hook_civicrm_caseTypes().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
- */
-function percentagepricesetfield_civicrm_caseTypes(&$caseTypes) {
-  _percentagepricesetfield_civix_civicrm_caseTypes($caseTypes);
-}
-
-/**
- * Implements hook_civicrm_alterSettingsFolders().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders
- */
-function percentagepricesetfield_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _percentagepricesetfield_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
 /**
