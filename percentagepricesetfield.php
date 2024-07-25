@@ -142,6 +142,25 @@ function percentagepricesetfield_civicrm_enable() {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterContent
  */
 function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplName, &$object) {
+  if ($context !== 'form') {
+    return;
+  }
+  if (!in_array(
+    get_class($object),
+    [
+      'CRM_Price_Form_Field',
+      'CRM_Event_Form_ParticipantFeeSelection',
+      'CRM_Event_Form_Registration_Register',
+      'CRM_Contribute_Form_Contribution_Main',
+      'CRM_Contribute_Form_Contribution',
+      'CRM_Event_Form_Participant',
+      'CRM_Event_Form_Registration_AdditionalParticipant',
+      'CRM_Price_Form_Preview',
+    ])
+  ) {
+    return;
+  }
+
   $args = func_get_args();
   $args['_get'] = $_GET;
   if ($func = call_user_func_array('_percentagepricesetfield_get_content_pricesetid_function', $args)) {
