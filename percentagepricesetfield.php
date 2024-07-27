@@ -195,6 +195,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
       'hide_and_force' => (int) ($allow_hide_and_force && _percentagepricesetfield_get_setting_value($field_id, 'hide_and_force')),
       'is_default' => _percentagepricesetfield_get_setting_value($field_id, 'is_default'),
       'disable_payment_methods' => _percentagepricesetfield_get_setting_value($field_id, 'disable_payment_methods'),
+      'apply_to_taxes' => _percentagepricesetfield_get_setting_value($field_id, 'apply_to_taxes'),
       'payment_processor_id' => CRM_Utils_Array::value('id', $object->_paymentProcessor),
     );
     $resource = CRM_Core_Resources::singleton();
