@@ -93,6 +93,7 @@ function percentagepricesetfield_civicrm_buildForm($formName, &$form) {
     case 'CRM_Event_Form_Participant':
     case 'CRM_Event_Form_Registration_AdditionalParticipant':
     case 'CRM_Price_Form_Preview':
+    case 'CRM_Member_Form_Membership':
       _percentagepricesetfield_buildForm_public_price_set_form($form);
       break;
   }
