@@ -107,7 +107,7 @@ CRM.percentagepricesetfield = {
       // At this point, baseTotal includes the amount (presumably $1) of the percentage checkbox,
       // so we should subtract that amount for an accurate baseTotal that includes
       // only the other selected price fields.
-      var percentageCheckboxAmount = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).data('amount');
+      var percentageCheckboxAmount = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).data('line_raw_total');
       baseTotal -= percentageCheckboxAmount;
       
       // Calculate the appropriate percentage.
