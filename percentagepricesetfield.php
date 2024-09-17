@@ -43,6 +43,7 @@ function percentagepricesetfield_civicrm_copy($objectName, &$object) {
       );
       CRM_Price_BAO_PriceField::retrieve($params, $new_price_field_values);
       // Use the source percentage values to mark the new field as a percentage field.
+      $source_percentage_values['disable_payment_methods'] = _percentagepricesetfield_preprocess_disable_payment_methods_value(array_keys($source_percentage_values['disable_payment_methods'] ?? []));
       $source_percentage_values['field_id'] = $new_price_field_values['id'];
       _percentagepricesetfield_create_field($source_percentage_values);
     }
@@ -773,11 +774,7 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
       'apply_to_taxes' => (int) !empty($values['percentagepricesetfield_apply_to_taxes']),
       'hide_and_force' => (int) !empty($values['percentagepricesetfield_hide_and_force']),
       'is_default' => (int) !empty($values['percentagepricesetfield_is_default']),
-      'disable_payment_methods' => (
-      !empty($values['percentagepricesetfield_disable_payment_methods']) ?
-      CRM_Utils_Array::implodePadded(array_keys($values['percentagepricesetfield_disable_payment_methods'])) :
-      ''
-      ),
+      'disable_payment_methods' => _percentagepricesetfield_preprocess_disable_payment_methods_value(array_keys($values['percentagepricesetfield_disable_payment_methods'])),
       'field_id' => $field_id,
     );
 
@@ -1164,4 +1161,8 @@ function _percentagepricesetfield_allow_hide_and_force($content, $context, $tplN
   }
 
   return TRUE;
+}
+
+function _percentagepricesetfield_preprocess_disable_payment_methods_value(?array $value = []): string {
+  return !empty($value) ? CRM_Utils_Array::implodePadded($value) :  '';
 }
