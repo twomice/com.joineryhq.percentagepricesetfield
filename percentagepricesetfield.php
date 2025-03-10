@@ -496,7 +496,11 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
     // JavaScript to auto-calculate the total (see
     // CRM/Price/Form/Calculate.tpl).
     // e.g., ["30","20||"]: change "20" to "0".
-    $element->_attributes['price'] = preg_replace('/(\["[^"]+",")[^|]+(\|.+)$/', '${1}0${2}', $element->_attributes['price']);
+    // e.g., [30,"20||"]: change "20" to "0".
+    //   (Note: newer civicrm versions omit the double-quotes around the first value e.g. 30)
+    $priceAttribute = $element->_attributes['price'];
+    $newPriceAttribute = preg_replace('/(\["?[^"]+"?,")[^|]+(\|.+)$/', '${1}0${2}', $priceAttribute);
+    $element->_attributes['price'] = $newPriceAttribute;
     $element_id = $field->_name . '_' . $element->_attributes['id'];
 
     // Store $element_id in the form so we can easily access it elsewhere.
