@@ -87,8 +87,15 @@ CRM.percentagepricesetfield = {
    * @returns float
    */
   calculateTotalFee: function calculateTotalFee() {
+    CRM.percentagepricesetfield.storePercentageState();
     // Calculate total per original calculateTotalFee function:
     var baseTotal;
+    var taxTotal = 0;
+    // If we're not applying a percentage, just use Core's calculation.
+    if (!CRM.percentagepricesetfield.is_percentage) {
+      return CRM.percentagepricesetfield.originalCalculateTotalFee();
+    }
+
     if (CRM.vars.percentagepricesetfield.apply_to_taxes == 1) {
       // If we apply the percentage to taxes, we can just use Core's calculation of baseTotal
       baseTotal = CRM.percentagepricesetfield.originalCalculateTotalFee();
@@ -97,29 +104,26 @@ CRM.percentagepricesetfield = {
       // If we're NOT applying the percentage to taxes, we must calculate baseTotal
       // *without* taxes.
       baseTotal = 0;
+      var lineTax = 0;
       var lineRawTotal;
       cj("#priceset [price]").each(function () {
         lineRawTotal = cj(this).data('line_raw_total');
         if (lineRawTotal) {
-          // data('amount') is the pre-tax value, so add that to baseTotal.
-          baseTotal += cj(this).data('amount');
+          lineTax = lineRawTotal - (lineRawTotal / (1 + (CRM.vars.percentagepricesetfield.tax_rate/100)));
+          baseTotal += lineRawTotal - lineTax;
+          taxTotal += lineTax;
         }
       });
     }
 
     var finalTotal;
-    if (CRM.percentagepricesetfield.is_percentage) {
-      // Calculate the appropriate percentage.
-      var percentage = CRM.vars.percentagepricesetfield.percentage;
-      var extra = (baseTotal*percentage/100);
-      // Consider any taxes to be applied to the extra percentage amount.
-      var extra_tax = extra * (CRM.vars.percentagepricesetfield.tax_rate / 100);
-      var total = extra + baseTotal + extra_tax;
-      finalTotal = Math.round( (total + Number.EPSILON) *100)/100;
-    }
-    else {
-      finalTotal = baseTotal;
-    }
+    // Calculate the appropriate percentage.
+    var percentage = CRM.vars.percentagepricesetfield.percentage;
+    var extra = (baseTotal*percentage/100);
+    // Consider any taxes to be applied to the extra percentage amount.
+    var extra_tax = extra * (CRM.vars.percentagepricesetfield.tax_rate / 100);
+    var total = extra + baseTotal + taxTotal + extra_tax;
+    finalTotal = Math.round( (total + Number.EPSILON) *100)/100;
     return finalTotal;
   },
 
