@@ -484,32 +484,15 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
   $field_id = _percentagepricesetfield_get_form_percentage_field_id($form);
   if ($field_id) {
     $field = & $form->_elements[$form->_elementIndex["price_{$field_id}"]];
-    // Get a reference to the last element in the $field->_elements array.
-    end($field->_elements);
-    $element = & $field->_elements[key($field->_elements)];
-    // Use the field label as the label for this checkbox element.
-    $element->_text = $field->_label;
-    // Set this checkbox's "price" to 0. This allows us to avoid having
-    // this checkbox affect that calculation, and we'll use our  own
-    // JavaScript to adjust the total based on the percentage. CiviCRM
-    // uses a custom format for this attribute, parsing it later in
-    // JavaScript to auto-calculate the total (see
-    // CRM/Price/Form/Calculate.tpl).
-    // e.g., ["30","20||"]: change "20" to "0".
-    // e.g., [30,"20||"]: change "20" to "0".
-    //   (Note: newer civicrm versions omit the double-quotes around the first value e.g. 30)
-    $priceAttribute = $element->_attributes['price'];
-    $newPriceAttribute = preg_replace('/(\["?[^"]+"?,")[^|]+(\|.+)$/', '${1}0${2}', $priceAttribute);
-    $element->_attributes['price'] = $newPriceAttribute;
-    $element_id = $field->_name . '_' . $element->_attributes['id'];
+    // Modify the percentage field to work as a percentage field.
+    switch (get_class($field)) {
+      case 'HTML_QuickForm_group':
+        _percentagepricesetfield_buildForm_public_price_set_form_checkbox($form, $field, $field_id);
+        break;
 
-    // Store $element_id in the form so we can easily access it elsewhere.
-    $form->_percentage_checkbox_id = $element_id;
-
-    // Remove this field's label (we copied it to the checkbox itself a few lines
-    // above.
-    $field->_label = '';
-
+      case 'HTML_QuickForm_text':
+        break;
+    }
     // If disable-per-payment-method, we must ignore any "Required" setting for
     // the percentage field.
     // (https://github.com/twomice/com.joineryhq.percentagepricesetfield/issues/19)
@@ -521,6 +504,30 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
       }
     }
   }
+}
+
+function _percentagepricesetfield_buildForm_public_price_set_form_checkbox($form, $field, $field_id) {
+  // Get a reference to the last element in the $field->_elements array.
+  end($field->_elements);
+  $element = & $field->_elements[key($field->_elements)];
+  // Use the field label as the label for this checkbox element.
+  $element->_text = $field->_label;
+  // Set this checkbox's "price" to 0. This allows us to avoid having
+  // this checkbox affect that calculation, and we'll use our  own
+  // JavaScript to adjust the total based on the percentage. CiviCRM
+  // uses a custom format for this attribute, parsing it later in
+  // JavaScript to auto-calculate the total (see
+  // CRM/Price/Form/Calculate.tpl).
+  // e.g., ["30","20||"]: change "20" to "0".
+  // e.g., [30,"20||"]: change "20" to "0".
+  //   (Note: newer civicrm versions omit the double-quotes around the first value e.g. 30)
+  $priceAttribute = $element->_attributes['price'];
+  $newPriceAttribute = preg_replace('/(\["?[^"]+"?,")[^|]+(\|.+)$/', '${1}0${2}', $priceAttribute);
+  $element->_attributes['price'] = $newPriceAttribute;
+
+  // Remove this field's label (we copied it to the checkbox itself a few lines
+  // above.
+  $field->_label = '';
 }
 
 /**
