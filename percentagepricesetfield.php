@@ -506,7 +506,26 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
 
       case 'HTML_QuickForm_text':
         $field->_attributes['price'] = _percentagepricesetfield_fix_price_attribute($field->_attributes['price']);
-        break;
+        $sliderSettings = _percentagepricesetfield_get_settings($field_id);
+        if ($sliderSettings['is_slider']) {
+          $field->_attributes['type'] = 'range';
+          $field->_attributes['min'] = $sliderSettings['slider_min'];
+          $field->_attributes['max'] = $sliderSettings['slider_max'];
+          $field->_attributes['value'] = $sliderSettings['slider_default'];
+          if (empty($sliderSettings['slider_step_list'])) {
+            $field->_attributes['step'] = $sliderSettings['slider_step'];
+          }
+          else {
+            $field->_attributes['list'] = "percentagepricesetfield_slider_step_list";
+            // $datalist[] = '<datalist>';
+            // foreach (explode(',', $sliderSettings['slider_step_list']) as $step) {
+            //   $datalist[] = '<option value="' . $step . '">';
+            // }
+            $datalist[] = '</datalist>';
+            $field->_attributes['datalistCSV'] = $sliderSettings['slider_step_list'];
+          }
+          break;
+        }
     }
     // If disable-per-payment-method, we must ignore any "Required" setting for
     // the percentage field.
@@ -615,6 +634,12 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $form->addElement('text', 'percentagepricesetfield_', E::ts('Short label for line item'));
   $form->addElement('text', 'percentagepricesetfield_percentage', E::ts('Percentage'));
   $form->addElement('checkbox', 'percentagepricesetfield_apply_to_taxes', E::ts('Apply percentage to tax amounts'));
+  $form->addElement('checkbox', 'percentagepricesetfield_is_slider', E::ts('Display as slider'));
+  $form->addElement('text', 'percentagepricesetfield_slider_min', E::ts('Minimum percentage'), ['size' => 9, 'type' => 'number']);
+  $form->addElement('text', 'percentagepricesetfield_slider_max', E::ts('Maximum percentage'));
+  $form->addElement('text', 'percentagepricesetfield_slider_default', E::ts('Default percentage'));
+  $form->addElement('text', 'percentagepricesetfield_slider_step', E::ts('Percentage step'));
+  $form->addElement('text', 'percentagepricesetfield_slider_step_list', E::ts('Percentage list of steps'));
   $hide_and_force_element = $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', E::ts('Hide checkbox and force to "yes"'));
   $descriptions['percentagepricesetfield_hide_and_force'] = E::ts('This option will force the additional percentage to be applied, and hide the check box, in front-end forms. (Additional percentage is always an option in back-office forms.)');
 
@@ -658,7 +683,11 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     $payment_method_checkboxes[] = $form->createElement('checkbox', $value['id'], $value['id'], ' ' . $value['name']);
   }
   $form->addGroup($payment_method_checkboxes, 'percentagepricesetfield_disable_payment_methods', E::ts('Disable for payment methods'), '<br />');
+
+  // Descriptions for the new fields.
   $descriptions['percentagepricesetfield_disable_payment_methods'] = E::ts('Additional percentage option will be forced to "no" in front-end forms submitted with the selected payment method(s). (Additional percentage is always an option in back-office forms.)');
+  $descriptions['percentagepricesetfield_slider_step'] = E::ts('The amount by which the slider will move when the user clicks on the slider track.');
+  $descriptions['percentagepricesetfield_slider_step_list'] = E::ts('A comma-separated list of values to use for the slider. E.g. 0,3,10,25. This overrides "Percentage step".');
 
   // Assign bhfe fields to the template.
   $tpl = CRM_Core_Smarty::singleton();
@@ -672,6 +701,12 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $bhfe[] = 'percentagepricesetfield_hide_and_force';
   $bhfe[] = 'percentagepricesetfield_is_default';
   $bhfe[] = 'percentagepricesetfield_disable_payment_methods';
+  $bhfe[] = 'percentagepricesetfield_is_slider';
+  $bhfe[] = 'percentagepricesetfield_slider_min';
+  $bhfe[] = 'percentagepricesetfield_slider_max';
+  $bhfe[] = 'percentagepricesetfield_slider_default';
+  $bhfe[] = 'percentagepricesetfield_slider_step';
+  $bhfe[] = 'percentagepricesetfield_slider_step_list';
   $form->assign('beginHookFormElements', $bhfe);
 
   // Set default values for our fields.
@@ -794,6 +829,12 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
       CRM_Utils_Array::implodePadded(array_keys($values['percentagepricesetfield_disable_payment_methods'])) :
       ''
       ),
+      'is_slider' => (int) !empty($values['percentagepricesetfield_is_slider']),
+      'slider_min' => (float) $values['percentagepricesetfield_slider_min'],
+      'slider_max' => (float) $values['percentagepricesetfield_slider_max'],
+      'slider_default' => (float) $values['percentagepricesetfield_slider_default'],
+      'slider_step' => (float) $values['percentagepricesetfield_slider_step'],
+      'slider_step_list' => ($values['percentagepricesetfield_slider_step_list']),
       'field_id' => $field_id,
     );
 
@@ -813,7 +854,9 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
       $field_values['field_id'] = $bao->id;
       _percentagepricesetfield_create_field($field_values);
     }
-    _percentagepricesetfield_rectify_price_options($field_values);
+    if ($form->_submitValues['html_type'] !== 'Text') {
+      _percentagepricesetfield_rectify_price_options($field_values);
+    }
   }
   else {
     // If it's not marked as a percentage field...
@@ -838,6 +881,12 @@ function _percentagepricesetfield_get_valid_fields() {
     'apply_to_taxes' => 'Boolean',
     'hide_and_force' => 'Boolean',
     'disable_payment_methods' => 'String',
+    'is_slider' => 'Boolean',
+    'slider_min' => 'Float',
+    'slider_max' => 'Float',
+    'slider_default' => 'Float',
+    'slider_step' => 'Float',
+    'slider_step_list' => 'String',
   );
   return $valid_fields;
 }
@@ -1157,6 +1206,12 @@ function _percentagepricesetfield_preprocess_saved_value($name, $value) {
   switch ($name) {
     case 'disable_payment_methods':
       $value = array_fill_keys((array) CRM_Utils_Array::explodePadded($value), '1');
+      break;
+    case 'slider_min':
+    case 'slider_max':
+    case 'slider_default':
+    case 'slider_step':
+      $value ?: NULL;
       break;
   }
   return $value;

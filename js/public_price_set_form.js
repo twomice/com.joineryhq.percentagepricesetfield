@@ -4,7 +4,7 @@
  */
 
 CRM.percentagepricesetfield = {
-  // Storage for most recent value of percentage checkbox, for use in cases
+  // Storage for most recent value of percentage field, for use in cases
   // where we have to automatically disable it (e.g., when disabling the
   // percentage option based on the selected payment method).
   is_percentage: CRM.vars.percentagepricesetfield.is_default,
@@ -16,8 +16,10 @@ CRM.percentagepricesetfield = {
     var field = cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id);
     if (field.attr('type') === 'checkbox') {
       CRM.percentagepricesetfield.is_percentage = field.prop('checked');
-    } else if (field.attr('type') === 'text') {
+    } 
+    else if (['text', 'range'].includes(field.attr('type'))) {
       CRM.percentagepricesetfield.is_percentage = Boolean(field.val());
+      CRM.vars.percentagepricesetfield.percentage = field.val();
     }
   },
 
@@ -82,6 +84,21 @@ CRM.percentagepricesetfield = {
   },
 
   /**
+   * Calculate the value of a range field, comparable to calculateText() or calculateCheckbox() in core.
+   */
+  calculateRange: function calculateRange(priceElement) {
+    calculateText(priceElement);
+    cj(priceElement).siblings('.price-field-amount').html(CRM.vars.percentagepricesetfield.percentage + "%");
+    CRM.percentagepricesetfield.updateTotal();
+  },
+
+  getClosestStep: function getClosestStep(arr, val) {
+    return arr.reduce(function (prev, curr) {
+      return (Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev);
+    });
+  },
+
+  /**
    * Function to override CiviCRM's window.calculateTotalFee()
    *
    * @returns float
@@ -136,7 +153,7 @@ cj(function() {
   // that the payment_intent matches the amount that is eventually charged.
   window.calculateTotalFee = CRM.percentagepricesetfield.calculateTotalFee;
 
-  // Store the state of the checkbox, so we can restore it later.
+  // Store the state of the percentage field, so we can restore it later.
   CRM.percentagepricesetfield.storePercentageState();
 
   if (CRM.vars.percentagepricesetfield.hide_and_force) {
@@ -144,6 +161,28 @@ cj(function() {
     cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id).prop('checked', true);
     cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id).closest('.crm-section').hide();
   }
+
+  // Calculate range field on load and change. If step list is configured: Render on load, snap to list on change.
+  // Add an onChange handler (also on page load) to all range fields to handle updates as if a text field, and also to update the slider value display.
+  cj("#priceset input[type='range']").each(function () {
+    CRM.percentagepricesetfield.calculateRange(this);
+    // Also set up a step list if need be.
+    if (cj(this).attr('datalistcsv')) {
+      var stepList = cj(this).attr('datalistcsv').split(',');
+      var stepListHtml = '';
+      for (var i in stepList) {
+        stepListHtml += '<option value="' + stepList[i] + '">' + stepList[i] + '</option>';
+      }
+      cj(this).after('<datalist id="step-list">' + stepListHtml + '</datalist>');
+      cj(this).attr('list', 'step-list');
+    }
+  });
+  cj("#priceset input[type='range']").change(function () {
+    var stepList = cj(this).attr('datalistcsv').split(',');
+    let closest = CRM.percentagepricesetfield.getClosestStep(stepList, this.value);
+    this.value = closest;
+    CRM.percentagepricesetfield.calculateRange(this);
+  });
 
   // Add an onChange handler for all of the payment method options.
   cj('input[name="payment_processor_id"]').change(CRM.percentagepricesetfield.changePaymentProcessor);

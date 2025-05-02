@@ -41,16 +41,23 @@ cj(function($) {
    */
   var is_percentagepricesetfield_change = function() {
     var el_is_percentagepricesetfield = cj('input#is_percentagepricesetfield');
-    if (
-      (el_is_percentagepricesetfield.attr('type') == 'checkbox' && el_is_percentagepricesetfield.prop('checked')) ||
-      (el_is_percentagepricesetfield.attr('type') == 'hidden' && el_is_percentagepricesetfield.val() == 1)
-    ) {
+    var field_type = cj('select#html_type').val();
+    if (el_is_percentagepricesetfield.attr('type') == 'checkbox' && el_is_percentagepricesetfield.prop('checked')) {
       cj("#showoption").hide();
       cj("#optionsPerLine").hide();
       cj(".crm-price-field-form-block-is_display_amounts").hide();
       cj("#percentagepricesetfield_financial_type").show();
       cj("div#percentagepricesetfield-block table tbody.percentagepricesetfield_details").show();
       cj("div#percentagepricesetfield-block").addClass('percentagepricesetfield-highlight');
+      if (field_type == 'Text') {
+        cj('#tr-percentagepricesetfield_percentage').hide();
+        cj('#tr-percentagepricesetfield_is_slider').show();
+      }
+      else {
+        cj('#tr-percentagepricesetfield_percentage').show();
+        cj('#tr-percentagepricesetfield_is_slider').hide();
+        cj('#tr-percentagepricesetfield_is_slider').prop('checked', false);
+      }
     }
     else {
       cj("#showoption").show();
@@ -59,8 +66,34 @@ cj(function($) {
       cj("#percentagepricesetfield_financial_type").hide();
       cj("div#percentagepricesetfield-block table tbody.percentagepricesetfield_details").hide();
       cj("div#percentagepricesetfield-block").removeClass('percentagepricesetfield-highlight');
+      cj('#tr-percentagepricesetfield_is_slider').hide();
     }
+    is_slider_change();
   };
+
+  /**
+   * OnChange handler for is_slider checkbox.
+   * Show and hide some relevant sections, depending on whether the
+   * is_slider checkbox is checked.
+   */
+  var is_slider_change = function() {
+    var el_is_slider = cj('input#percentagepricesetfield_is_slider');
+    if (el_is_slider.attr('type') == 'checkbox' && el_is_slider.prop('checked') ||
+        el_is_slider.attr('type') == 'hidden' && el_is_slider.val() == 1) {
+      cj("#tr-percentagepricesetfield_slider_min").show();
+      cj("#tr-percentagepricesetfield_slider_max").show();
+      cj("#tr-percentagepricesetfield_slider_default").show();
+      cj("#tr-percentagepricesetfield_slider_step").show();
+      cj("#tr-percentagepricesetfield_slider_step_list").show();
+    }
+    else {
+      cj("#tr-percentagepricesetfield_slider_min").hide();
+      cj("#tr-percentagepricesetfield_slider_max").hide();
+      cj("#tr-percentagepricesetfield_slider_default").hide();
+      cj("#tr-percentagepricesetfield_slider_step").hide();
+      cj("#tr-percentagepricesetfield_slider_step_list").hide();
+    }
+  }
 
   var percentagepricesetfield_disable_payment_methods_change = function() {
     var msg_id = 'disable_payment_methods_message';
@@ -155,6 +188,8 @@ cj(function($) {
 
   // Add change handler for "is percentage" checkbox
   cj('input#is_percentagepricesetfield').change(is_percentagepricesetfield_change);
+  // Add change handler for "is slider" checkbox
+  cj('input#percentagepricesetfield_is_slider').change(is_slider_change);
 
   // Add change handler for "hide and force" checkbox
   cj('#percentagepricesetfield_hide_and_force').change(hide_and_force_change);
