@@ -4,7 +4,7 @@
  */
 
 CRM.percentagepricesetfield = {
-  // Storage for most recent value of percentage checkbox, for use in cases
+  // Storage for most recent value of percentage field, for use in cases
   // where we have to automatically disable it (e.g., when disabling the
   // percentage option based on the selected payment method).
   is_percentage: CRM.vars.percentagepricesetfield.is_default,
@@ -13,7 +13,14 @@ CRM.percentagepricesetfield = {
   originalCalculateTotalFee: window.calculateTotalFee,
 
   storePercentageState: function storePercentageState() {
-    CRM.percentagepricesetfield.is_percentage = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
+    var field = cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id);
+    if (field.attr('type') === 'checkbox') {
+      CRM.percentagepricesetfield.is_percentage = field.prop('checked');
+    } 
+    else if (['text', 'range'].includes(field.attr('type'))) {
+      CRM.percentagepricesetfield.is_percentage = Boolean(field.val());
+      CRM.vars.percentagepricesetfield.percentage = field.val();
+    }
   },
 
   /**
@@ -30,20 +37,20 @@ CRM.percentagepricesetfield = {
     if (CRM.vars.percentagepricesetfield.disable_payment_methods[selected_payment_method]) {
 
       // Hide the option.
-      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
+      cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id).closest('.crm-section').hide();
       // Store the state of the checkbox, so we can restore it later.
       CRM.percentagepricesetfield.storePercentageState();
       // Un-check the checkbox; we have to actually uncheck it, because it's
       // a Price Set Field and will be treated as a line item if checked.
-      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', false);
+      cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id).prop('checked', false);
     }
     else {
 
       // Restore the previous state of the percentage checkbox.
-      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', CRM.percentagepricesetfield.isPercentage());
+      cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id).prop('checked', CRM.percentagepricesetfield.isPercentage());
       // Dispaly the option again.
       if (!CRM.vars.percentagepricesetfield.hide_and_force) {
-        cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').show();
+        cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id).closest('.crm-section').show();
       }
     }
     // Re-calculate the total-with-percentage; in the lines above, we manipulated
@@ -77,13 +84,35 @@ CRM.percentagepricesetfield = {
   },
 
   /**
+   * Calculate the value of a range field, comparable to calculateText() or calculateCheckbox() in core.
+   */
+  calculateRange: function calculateRange(priceElement) {
+    calculateText(priceElement);
+    cj(priceElement).siblings('.price-field-amount').html(CRM.vars.percentagepricesetfield.percentage + "%");
+    CRM.percentagepricesetfield.updateTotal();
+  },
+
+  getClosestStep: function getClosestStep(arr, val) {
+    return arr.reduce(function (prev, curr) {
+      return (Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev);
+    });
+  },
+
+  /**
    * Function to override CiviCRM's window.calculateTotalFee()
    *
    * @returns float
    */
   calculateTotalFee: function calculateTotalFee() {
+    CRM.percentagepricesetfield.storePercentageState();
     // Calculate total per original calculateTotalFee function:
     var baseTotal;
+    var taxTotal = 0;
+    // If we're not applying a percentage, just use Core's calculation.
+    if (!CRM.percentagepricesetfield.is_percentage) {
+      return CRM.percentagepricesetfield.originalCalculateTotalFee();
+    }
+
     if (CRM.vars.percentagepricesetfield.apply_to_taxes == 1) {
       // If we apply the percentage to taxes, we can just use Core's calculation of baseTotal
       baseTotal = CRM.percentagepricesetfield.originalCalculateTotalFee();
@@ -92,29 +121,26 @@ CRM.percentagepricesetfield = {
       // If we're NOT applying the percentage to taxes, we must calculate baseTotal
       // *without* taxes.
       baseTotal = 0;
+      var lineTax = 0;
       var lineRawTotal;
       cj("#priceset [price]").each(function () {
         lineRawTotal = cj(this).data('line_raw_total');
         if (lineRawTotal) {
-          // data('amount') is the pre-tax value, so add that to baseTotal.
-          baseTotal += cj(this).data('amount');
+          lineTax = lineRawTotal - (lineRawTotal / (1 + (CRM.vars.percentagepricesetfield.tax_rate/100)));
+          baseTotal += lineRawTotal - lineTax;
+          taxTotal += lineTax;
         }
       });
     }
 
     var finalTotal;
-    if (cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
-      // Calculate the appropriate percentage.
-      var percentage = CRM.vars.percentagepricesetfield.percentage;
-      var extra = (baseTotal*percentage/100);
-      // Consider any taxes to be applied to the extra percentage amount.
-      var extra_tax = extra * (CRM.vars.percentagepricesetfield.tax_rate / 100);
-      var total = extra + baseTotal + extra_tax;
-      finalTotal = Math.round( (total + Number.EPSILON) *100)/100;
-    }
-    else {
-      finalTotal = baseTotal;
-    }
+    // Calculate the appropriate percentage.
+    var percentage = CRM.vars.percentagepricesetfield.percentage;
+    var extra = (baseTotal*percentage/100);
+    // Consider any taxes to be applied to the extra percentage amount.
+    var extra_tax = extra * (CRM.vars.percentagepricesetfield.tax_rate / 100);
+    var total = extra + baseTotal + taxTotal + extra_tax;
+    finalTotal = Math.round( (total + Number.EPSILON) *100)/100;
     return finalTotal;
   },
 
@@ -127,14 +153,36 @@ cj(function() {
   // that the payment_intent matches the amount that is eventually charged.
   window.calculateTotalFee = CRM.percentagepricesetfield.calculateTotalFee;
 
-  // Store the state of the checkbox, so we can restore it later.
+  // Store the state of the percentage field, so we can restore it later.
   CRM.percentagepricesetfield.storePercentageState();
 
   if (CRM.vars.percentagepricesetfield.hide_and_force) {
     // Hide and force if so configured.
-    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', true);
-    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
+    cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id).prop('checked', true);
+    cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id).closest('.crm-section').hide();
   }
+
+  // Calculate range field on load and change. If step list is configured: Render on load, snap to list on change.
+  // Add an onChange handler (also on page load) to all range fields to handle updates as if a text field, and also to update the slider value display.
+  cj("#priceset input[type='range']").each(function () {
+    CRM.percentagepricesetfield.calculateRange(this);
+    // Also set up a step list if need be.
+    if (cj(this).attr('datalistcsv')) {
+      var stepList = cj(this).attr('datalistcsv').split(',');
+      var stepListHtml = '';
+      for (var i in stepList) {
+        stepListHtml += '<option value="' + stepList[i] + '">' + stepList[i] + '</option>';
+      }
+      cj(this).after('<datalist id="step-list">' + stepListHtml + '</datalist>');
+      cj(this).attr('list', 'step-list');
+    }
+  });
+  cj("#priceset input[type='range']").change(function () {
+    var stepList = cj(this).attr('datalistcsv').split(',');
+    let closest = CRM.percentagepricesetfield.getClosestStep(stepList, this.value);
+    this.value = closest;
+    CRM.percentagepricesetfield.calculateRange(this);
+  });
 
   // Add an onChange handler for all of the payment method options.
   cj('input[name="payment_processor_id"]').change(CRM.percentagepricesetfield.changePaymentProcessor);
@@ -189,7 +237,7 @@ cj(function() {
   CRM.percentagepricesetfield.changePaymentProcessor();
 
   // Add an event handler to set is_percentage any time the checkbox is manually changed.
-  cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).change(function(){
-    CRM.percentagepricesetfield.is_percentage = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
+  cj('#' + CRM.vars.percentagepricesetfield.percentage_field_id).change(function(){
+    CRM.percentagepricesetfield.storePercentageState();
   });
 });

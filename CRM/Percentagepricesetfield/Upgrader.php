@@ -147,6 +147,22 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_1104() {
+    // Note: Do NOT copy/paste this for future schema changes - in Civi 6.2+ you can use `E::schema->alterSchemaField()`.
+    $this->ctx->log->info('Applying update 1104');
+
+    $this->ctx->log->info('Add column for percentage field settings.');
+    if (!CRM_Core_BAO_SchemaHandler::checkIfFieldExists('civicrm_percentagepricesetfield', 'slider_min')) {
+      CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_percentagepricesetfield ADD COLUMN is_slider tinyint(4) NOT NULL DEFAULT 1 COMMENT 'Display as slider'");
+      CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_percentagepricesetfield ADD COLUMN slider_min int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'Minimum percent for slider'");
+      CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_percentagepricesetfield ADD COLUMN slider_max int(10) unsigned NOT NULL DEFAULT 100 COMMENT 'Maximum percent for slider'");
+      CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_percentagepricesetfield ADD COLUMN slider_default int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'Default value for slider'");
+      CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_percentagepricesetfield ADD COLUMN slider_step int(10) unsigned NOT NULL DEFAULT 1 COMMENT 'Step for slider'");
+      CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_percentagepricesetfield ADD COLUMN slider_step_list varchar(255) NOT NULL DEFAULT '' COMMENT 'Step list for slider'");
+    }
+    return TRUE;
+  }
+
   /**
    * Example: Run an external SQL script
    *
