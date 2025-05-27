@@ -29,7 +29,7 @@ function percentagepricesetfield_civicrm_copy($objectName, &$object) {
     $source_percentage_field_ids = _percentagepricesetfield_get_percentage_field_ids($source_price_set['id'], FALSE);
     foreach ($source_percentage_field_ids as $field_id) {
       // Get the percentage price field values for this field.
-      $source_percentage_values = _percentagepricesetfield_get_settings($field_id);
+      $source_percentage_values = _percentagepricesetfield_get_settings($field_id, FALSE);
       // Get the price field values for this field; we need its 'name' value.
       $params = array(
         'id' => $field_id,
@@ -427,7 +427,7 @@ function _percentagepricesetfield_get_setting_value_override($setting_name) {
  * @param  Integer $field_id The ID of the percentage field.
  * @return Array of setting values.
  */
-function _percentagepricesetfield_get_settings($field_id) {
+function _percentagepricesetfield_get_settings($field_id, bool $preProcess = TRUE) {
   static $ret = array();
   if (!array_key_exists($field_id, $ret)) {
     $values = array();
@@ -451,7 +451,12 @@ function _percentagepricesetfield_get_settings($field_id) {
     $dao->fetch();
     if ($dao->N) {
       foreach ($field_names as $field_name) {
-        $values[$field_name] = _percentagepricesetfield_preprocess_saved_value($field_name, $dao->$field_name);
+        if ($preProcess) {
+          $values[$field_name] = _percentagepricesetfield_preprocess_saved_value($field_name, $dao->$field_name);
+        }
+        else {
+          $values[$field_name] = $dao->$field_name;
+        }
       }
     }
 
