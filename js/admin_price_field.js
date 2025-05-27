@@ -13,12 +13,7 @@ cj(function($) {
     var html_type_name = cj('#html_type').val();
     // Call the original event listener.
     percentagepricesetfield_option_html_type_original(form);
-    if (html_type_name == 'CheckBox') {
-      cj("#percentagepricesetfield-block").show();
-    }
-    else {
-      cj("#percentagepricesetfield-block").hide();
-    }
+    cj("#percentagepricesetfield-block").show();
     is_percentagepricesetfield_change();
   };
 
@@ -41,14 +36,10 @@ cj(function($) {
 
   /**
    * OnChange handler for is_percentagepricesetfield checkbox.
-   * If html_type field is "CheckBox", show and hide some relevant sections,
-   * depending on whether the is_percentagepricesetfield checkbox is checked.
+   * Show and hide some relevant sections, depending on whether the
+   * is_percentagepricesetfield checkbox is checked.
    */
   var is_percentagepricesetfield_change = function() {
-    if (cj('#html_type').val() != 'CheckBox') {
-      return;
-    }
-
     var el_is_percentagepricesetfield = cj('input#is_percentagepricesetfield');
     if (
       (el_is_percentagepricesetfield.attr('type') == 'checkbox' && el_is_percentagepricesetfield.prop('checked')) ||
