@@ -24,7 +24,7 @@ function percentagepricesetfield_civicrm_copy($objectName, &$object) {
     $params = array(
       'name' => $original_price_set_name,
     );
-    CRM_Price_BAO_PriceSet::retrieve($params, $source_price_set);
+    CRM_Core_DAO::commonRetrieve('CRM_Price_DAO_PriceSet', $params, $source_price_set);
     // Get all percentage fields in the source prices set:
     $source_percentage_field_ids = _percentagepricesetfield_get_percentage_field_ids($source_price_set['id'], FALSE);
     foreach ($source_percentage_field_ids as $field_id) {
@@ -34,14 +34,14 @@ function percentagepricesetfield_civicrm_copy($objectName, &$object) {
       $params = array(
         'id' => $field_id,
       );
-      CRM_Price_BAO_PriceField::retrieve($params, $source_price_field_values);
+      CRM_Core_DAO::commonRetrieve('CRM_Price_DAO_PriceField', $params, $source_price_field_values);
       // Now find the like-named checkbox field in the new price set. We need its ID.
       $params = array(
         'price_set_id' => $object->id,
         'name' => $source_price_field_values['name'],
         'html_type' => 'CheckBox',
       );
-      CRM_Price_BAO_PriceField::retrieve($params, $new_price_field_values);
+      CRM_Core_DAO::commonRetrieve('CRM_Price_DAO_PriceField', $params, $new_price_field_values);
       // Use the source percentage values to mark the new field as a percentage field.
       $source_percentage_values['field_id'] = $new_price_field_values['id'];
       _percentagepricesetfield_create_field($source_percentage_values);
@@ -590,7 +590,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   // On submit, whether new or existing field:
   if ($form->_flagSubmitted && $form->_submitValues['html_type'] == 'CheckBox' && $form->_submitValues['is_percentagepricesetfield']) {
     // Remove the Required setting if the "disable for payment methods" is in use.
-    if (!empty(CRM_Utils_Array::value('percentagepricesetfield_disable_payment_methods', $form->_submitValues))) {
+    if ($form->_submitValues['percentagepricesetfield_disable_payment_methods'] ?? FALSE) {
       $form->_submitValues['is_required'] = 0;
     }
   }
