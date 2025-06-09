@@ -83,7 +83,12 @@ CRM.percentagepricesetfield = {
    */
   calculateTotalFee: function calculateTotalFee() {
     // Calculate total per original calculateTotalFee function:
+    // If we're not adding a percentage, just return the original total.
+    if (!cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
+      return CRM.percentagepricesetfield.originalCalculateTotalFee();
+    }
     var baseTotal;
+    var taxTotal = 0;
     if (CRM.vars.percentagepricesetfield.apply_to_taxes == 1) {
       // If we apply the percentage to taxes, we can just use Core's calculation of baseTotal
       baseTotal = CRM.percentagepricesetfield.originalCalculateTotalFee();
@@ -92,12 +97,14 @@ CRM.percentagepricesetfield = {
       // If we're NOT applying the percentage to taxes, we must calculate baseTotal
       // *without* taxes.
       baseTotal = 0;
+      var lineTax = 0;
       var lineRawTotal;
       cj("#priceset [price]").each(function () {
         lineRawTotal = cj(this).data('line_raw_total');
         if (lineRawTotal) {
-          // data('amount') is the pre-tax value, so add that to baseTotal.
-          baseTotal += cj(this).data('amount');
+          lineTax = lineRawTotal - (lineRawTotal / (1 + (CRM.vars.percentagepricesetfield.tax_rate/100)));
+          baseTotal += lineRawTotal - lineTax;
+          taxTotal += lineTax;
         }
       });
     }
@@ -109,7 +116,7 @@ CRM.percentagepricesetfield = {
       var extra = (baseTotal*percentage/100);
       // Consider any taxes to be applied to the extra percentage amount.
       var extra_tax = extra * (CRM.vars.percentagepricesetfield.tax_rate / 100);
-      var total = extra + baseTotal + extra_tax;
+      var total = extra + baseTotal + taxTotal + extra_tax;
       finalTotal = Math.round( (total + Number.EPSILON) *100)/100;
     }
     else {
