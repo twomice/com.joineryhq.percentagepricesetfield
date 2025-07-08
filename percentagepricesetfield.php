@@ -65,11 +65,19 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
       // If this form is being submitted, we'll adjust the line item label, if
       // the price set contains a percentage field.
       foreach ($amount[$field_id]['options'] as $option_id => &$option) {
-        // Apply percentage if "percentage" checkbox was checked.
-        if (!empty($form->_submitValues["price_{$field_id}"][$option_id])) {
+        // Apply percentage if "percentage" field was selected.
+        $percentageField = $form->_submitValues["price_{$field_id}"];
+        if (is_array($percentageField) && !empty($percentageField[$option_id])) {
           $option['amount'] = _percentagepricesetfield_calculate_additional_amount($form);
           $option['tax_amount'] = $option['amount'] * ($option['tax_rate'] / 100);
           $percent = _percentagepricesetfield_get_percentage($form->_priceSetId);
+          $option['label'] = $percent . '%';
+        }
+        elseif (is_scalar($percentageField) && !empty($percentageField)) {
+          $percentAmount = _percentagepricesetfield_calculate_additional_amount($form);
+          $option['tax_amount'] = $percentAmount * ($option['tax_rate'] / 100);
+          $percent = $percentageField;
+          $option['amount'] = $percentAmount / $percent;
           $option['label'] = $percent . '%';
         }
       }
@@ -371,8 +379,12 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
           }
         }
       }
-
-      $percentage = _percentagepricesetfield_get_percentage($form->_priceSetId);
+      if (is_array($params["price_{$field_id}"])) {
+        $percentage = _percentagepricesetfield_get_percentage($form->_priceSetId);
+      }
+      else {
+        $percentage = $params["price_{$field_id}"];
+      }
       $additional_amount = round(($base_total * $percentage / 100), 2);
     }
   }
