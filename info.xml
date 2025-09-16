@@ -13,11 +13,11 @@
     <author>Allen Shaw</author>
     <email>allen@joineryhq.com</email>
   </maintainer>
-  <releaseDate>2025-06-16</releaseDate>
-  <version>1.5.5</version>
+  <releaseDate>2025-09-16</releaseDate>
+  <version>1.6.0</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>5.38</ver>
+    <ver>5.65</ver>
   </compatibility>
   <comments>Initial development sponsored by the Vestibular Disorders Assocation.</comments>
   <civix>

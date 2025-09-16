@@ -8,25 +8,18 @@ define('PERCENTAGEPRICESETFIELD_PLACEHOLDER_LABEL', 'ERROR: percentagepricesetfi
 /**
  * Implements hook_civicrm_copy().
  */
-function percentagepricesetfield_civicrm_copy($objectName, &$object) {
+function percentagepricesetfield_civicrm_copy($objectName, &$object, $original_id = NULL) {
   if (strtolower($objectName) == 'set') {
-    // Get the price set that this one was copied from, basd on the convention
-    // that copied price sets always have '__Copy_id_[N]_' or '_Copy_id_[N]_' appended
-    // to their name, where [N] is an integer.
-    // Notes:
-    // - [N] is often, but not always, the ID of the new price set, because N is
-    //   calculated using max(id)+1, and max(id) is not always equivalent to the
-    //   next serial ID.)
-    // - Note the difference between leading "__" and leading "_" in the appended
-    //   strings. This seems to vary by CiviCRM version, older versions using two
-    //   underscores, and newer versions using only one.
-    $original_price_set_name = preg_replace('/_+Copy_id_[0-9]+_$/', '', $object->name);
-    $params = array(
-      'name' => $original_price_set_name,
-    );
-    CRM_Core_DAO::commonRetrieve('CRM_Price_DAO_PriceSet', $params, $source_price_set);
+    if (!$original_id) {
+      // If we don't know the original price set id, we cannot copy the
+      // Percentage Price Fields configurations. Therefore, alert the user and
+      // skip any further action.
+      CRM_Core_Session::setStatus(E::ts('If the new Price Set contains any Percentage Price Set Fields, they were not fully configured. Please double-check the configuration of any such fields in the new Price Set.'), 'Caution.', 'error');
+      return;
+    }
+
     // Get all percentage fields in the source prices set:
-    $source_percentage_field_ids = _percentagepricesetfield_get_percentage_field_ids($source_price_set['id'], FALSE);
+    $source_percentage_field_ids = _percentagepricesetfield_get_percentage_field_ids($original_id, FALSE);
     foreach ($source_percentage_field_ids as $field_id) {
       // Get the percentage price field values for this field.
       $source_percentage_values = _percentagepricesetfield_get_settings($field_id, FALSE);
