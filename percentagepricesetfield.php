@@ -214,7 +214,7 @@ function percentagepricesetfield_civicrm_pageRun(&$page) {
     // Adjust the template variables for each percentage field, to hide certain
     // checkbox-related functionality which is irrelevant to percentage fields.
     $tpl = CRM_Core_Smarty::singleton();
-    $tpl_vars = & $tpl->get_template_vars();
+    $tpl_vars = & $tpl->getTemplateVars();
     foreach ($field_ids as $field_id) {
       if (array_key_exists('priceField', $tpl_vars) && array_key_exists($field_id, $tpl_vars['priceField'])
       ) {
@@ -648,7 +648,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
 
   // Assign bhfe fields to the template.
   $tpl = CRM_Core_Smarty::singleton();
-  $bhfe = $tpl->get_template_vars('beginHookFormElements');
+  $bhfe = $tpl->getTemplateVars('beginHookFormElements');
   if (!$bhfe) {
     $bhfe = array();
   }
