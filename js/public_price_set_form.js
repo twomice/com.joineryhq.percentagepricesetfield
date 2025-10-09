@@ -93,6 +93,7 @@ CRM.percentagepricesetfield = {
       // *without* taxes.
       baseTotal = 0;
       var lineRawTotal;
+      var lineAmount;
       cj("#priceset [price]").each(function () {
         lineRawTotal = cj(this).data('line_raw_total');
         if (lineRawTotal) {
