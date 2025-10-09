@@ -224,6 +224,7 @@ function percentagepricesetfield_civicrm_pageRun(&$page) {
         $tpl_vars['priceField'][$field_id]['html_type_display'] = 'Percentage';
       }
     }
+    $tpl->assign('priceField', $tpl_vars['priceField']);
   }
   elseif ($page_name == 'CRM_Event_Page_EventInfo') {
     $resource = CRM_Core_Resources::singleton();
