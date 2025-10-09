@@ -502,11 +502,8 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
     $element->_attributes['price'] = $newPriceAttribute;
     $element_id = $field->_name . '_' . $element->_attributes['id'];
 
-    // Store $element_id in the form so we can easily access it elsewhere.
-    $form->_percentage_checkbox_id = $element_id;
-
     // Remove this field's label (we copied it to the checkbox itself a few lines
-    // above.
+    // above).
     $field->_label = '';
 
     // If disable-per-payment-method, we must ignore any "Required" setting for
