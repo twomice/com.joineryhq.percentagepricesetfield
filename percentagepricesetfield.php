@@ -175,7 +175,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
     // value because the checkbox element's "id" attribute will be
     // "price_[field_id]_[field_value]".
     $field_value = _percentagepricesetfield_get_field_value($field_id);
-    if (!$field_value_id = CRM_Utils_Array::value('id', $field_value)) {
+    if (!$field_value_id = $field_value['id'] ?? NULL) {
       return;
     }
 
@@ -190,7 +190,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
       'is_default' => _percentagepricesetfield_get_setting_value($field_id, 'is_default'),
       'disable_payment_methods' => _percentagepricesetfield_get_setting_value($field_id, 'disable_payment_methods'),
       'apply_to_taxes' => _percentagepricesetfield_get_setting_value($field_id, 'apply_to_taxes'),
-      'payment_processor_id' => CRM_Utils_Array::value('id', $object->_paymentProcessor),
+      'payment_processor_id' => $object->_paymentProcessor['id'] ?? NULL,
     );
     $resource = CRM_Core_Resources::singleton();
     $content .= '<script type="text/javascript">';
@@ -246,9 +246,9 @@ function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$fil
   if ($formName == 'CRM_Price_Form_Field') {
     // If the field is set as is_percentagepricesetfield,
     // make sure there are no (enabled) others already in this fieldset.
-    if (CRM_Utils_Array::value('is_percentagepricesetfield', $fields)) {
+    if (!empty($fields['is_percentagepricesetfield'])) {
       $field_ids = _percentagepricesetfield_get_percentage_field_ids($fields['sid']);
-      $fid = CRM_Utils_Array::value('fid', $fields);
+      $fid = $fields['fid'] ?? NULL;
       while (($fid_key = array_search($fid, $field_ids)) !== FALSE) {
         unset($field_ids[$fid_key]);
       }
@@ -377,11 +377,11 @@ function _percentagepricesetfield_get_setting_value($field_id, $setting_name) {
   $value = _percentagepricesetfield_get_setting_value_override($setting_name);
   if ($value === NULL) {
     $values = _percentagepricesetfield_get_settings($field_id);
-    $value = CRM_Utils_Array::value($setting_name, $values);
+    $value = $values[$setting_name] ?? NULL;
 
     if ($value === NULL) {
       $field_value = _percentagepricesetfield_get_field_value($field_id);
-      $value = CRM_Utils_Array::value($setting_name, $field_value);
+      $value = $field_value[$setting_name] ?? NULL;
     }
   }
   return $value;
@@ -404,7 +404,7 @@ function _percentagepricesetfield_get_setting_value_override($setting_name) {
           'return' => array("percentagepricesetfield_hide_and_force_all"),
         )
       );
-      $value = CRM_Utils_Array::value('percentagepricesetfield_hide_and_force_all', $result['values'][0]);
+      $value = $result['values'][0]['percentagepricesetfield_hide_and_force_all'] ?? NULL;
       if ((bool) $value) {
         return $value;
       }
@@ -967,7 +967,7 @@ function _percentagepricesetfield_get_content_pricesetid_function($content, $con
  * @return String The price set ID, if any; otherwise NULL.
  */
 function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_preview($content, $context, $tplName, $object, $_get) {
-  return CRM_Utils_Array::value('sid', $_get);
+  return $_get['sid'] ?? NULL;
 }
 
 /**
@@ -983,7 +983,7 @@ function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_previe
  * @return String The price set ID, if any; otherwise NULL.
  */
 function _percentagepricesetfield_civicrm_alterContent_get_pricesetid_for_contribution_backoffice($content, $context, $tplName, $object, $_get) {
-  return CRM_Utils_Array::value('priceSetId', $_get);
+  return $_get['priceSetId'] ?? NULL;
 }
 
 /**
