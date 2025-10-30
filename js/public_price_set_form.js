@@ -98,7 +98,12 @@ CRM.percentagepricesetfield = {
         lineRawTotal = cj(this).data('line_raw_total');
         if (lineRawTotal) {
           // data('amount') is the pre-tax value, so add that to baseTotal.
-          baseTotal += cj(this).data('amount');
+          lineAmount = cj(this).data('amount');
+          // handle unexpected cases where lineAmount is not defined
+          if (typeof lineAmount == 'undefined') {
+            lineAmount = lineRawTotal;
+          }
+          baseTotal += lineAmount;
         }
       });
     }
