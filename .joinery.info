@@ -1,0 +1,30 @@
+# Repo info.
+#
+# This file provides lightweight, advisory metadata.
+# Keys and values are not guaranteed stable and may change over time.
+# Intended for human reference and simple filtering — not as a strict API.
+#
+# Format: Ini-style variable declarations:
+#   Keys: [-a-z0-9]
+#   Values: free text without '=', unquoted
+#   Commented lines begin with # (no intra-line or multi-line comments)
+#
+# Expected/typical values are commented above each declaration.
+# Because there's no contractual obligation for specific values, any value for
+# any key (and indeed, ad-hoc declaration of additional keys) is permissible;
+# however, consistency is your friend when it comes time to filter on these
+# values, so you'd be smart to stick to the typical values.
+
+# What type of software is this?
+# civicrm-extension
+# wordpress-plugin
+# joomla-extension
+# drupal-module
+type=civicrm-extension
+  
+# What is the author's commitment to support?
+# Reference: https://joineryhq.com/software-support-levels#active-support
+# active
+# limited
+# as-is
+support-level=active
