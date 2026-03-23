@@ -8,7 +8,7 @@ cj(function($) {
   // event handler, and thus it may be called after any onChange event handler
   // we add for that element. By replacing the function with our own definition
   // of it, we can control the order of execution.
-  percentagepricesetfield_option_html_type_original = option_html_type;
+  percentagepricesetfield_option_html_type_original = window.option_html_type;
   option_html_type = function(form) {
     var html_type_name = cj('#html_type').val();
     // Call the original event listener.
@@ -102,17 +102,14 @@ cj(function($) {
   // a second tbody, for other options, which will be hidden, but we don't want
   // to hide this master field).
   cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_main').append(cj('table#bhfe-table input#is_percentagepricesetfield').closest('tr'));
-  // Move remaining bhfe fields into the second tbody.
-  cj('table#bhfe-table tr').each(function(idx, el) {
-    el = cj(el);
-    cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_details').append(el);
-    var input_name = el.find('input').attr('name').split('[')[0];
-    el.attr('id', 'tr-' + input_name);
-    var cells = el.find('td');
-    cj(cells[0]).addClass('label');
-    cj(cells[1]).addClass('input');
+  // Move the rest of our bhfe fields into the second tbody.
+  cj('table#bhfe-table label[for^="percentagepricesetfield_"]').each(function(idx, label) {
+    var tr = cj(label).closest('tr');
+    tr.attr('id', 'tr-' + tr.find('input').attr('name').split('[')[0]);
+    tr.find('td:eq(0)').addClass('label');
+    tr.find('td').removeClass('nowrap');
+    cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_details').append(tr);
   });
-  cj('div#percentagepricesetfield-block td').removeClass('nowrap');
 
   // Freeze hide-and-force checkbox if so instructed. See "NOTE ON FREEZING
   // HIDE-AND-FORCE" in percentagepricesetfield.php.
@@ -134,8 +131,10 @@ cj(function($) {
     cj('tr#tr-'+ i +' td.input').append('<div class="description">'+ CRM.vars.percentagepricesetfield.descriptions[i] +'</div>');
   }
 
-  // Remove the bhfe table. It should be empty at this point, but clean up anyway.
-  cj('table#bhfe-table').remove();
+  // Remove the bhfe table, but only if it's empty.
+  if (cj('table#bhfe-table tr').length == 0) {
+    cj('table#bhfe-table').remove();
+  }
 
   // Clone financial_type_id field into percentagepricesetfield-block
   myFinancialTypeId = cj('select#financial_type_id').closest('tr').clone();
