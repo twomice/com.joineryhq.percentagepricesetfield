@@ -2,7 +2,7 @@
  * Custom JavaScript functions for the form at /civicrm/admin/price/field.
  */
 /*global CRM, ts */
-cj(function($) {
+CRM.$(function($) {
   // Override option_html_type() with our own version of it.
   // This is necessary because div#html_type has this function as an onChange
   // event handler, and thus it may be called after any onChange event handler
@@ -97,14 +97,14 @@ cj(function($) {
   );
   // Add a unique ID to the table holding bhfe fields, so we can access it
   // directly later.
-  cj('input#is_percentagepricesetfield').closest('table').attr('id', 'bhfe-table');
+  cj('input#is_percentagepricesetfield').closest('table').addClass('percentagepricesetfield-bhfe-table');
   // Move the is_percentagepricesetfield bhfe field to its own tbody (there's
   // a second tbody, for other options, which will be hidden, but we don't want
   // to hide this master field).
-  cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_main').append(cj('table#bhfe-table input#is_percentagepricesetfield').closest('tr'));
+  cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_main').append(cj('table.percentagepricesetfield-bhfe-table input#is_percentagepricesetfield').closest('tr'));
   // Move the rest of our bhfe fields into the second tbody.
-  cj('table#bhfe-table label[for^="percentagepricesetfield_"]').each(function(idx, label) {
-    var tr = cj(label).closest('tr');
+  cj('table.percentagepricesetfield-bhfe-table td [id^="percentagepricesetfield_"]').each(function(idx, field) {
+    var tr = cj(field).closest('tr');
     tr.attr('id', 'tr-' + tr.find('input').attr('name').split('[')[0]);
     tr.find('td:eq(0)').addClass('label');
     tr.find('td').removeClass('nowrap');
@@ -132,8 +132,8 @@ cj(function($) {
   }
 
   // Remove the bhfe table, but only if it's empty.
-  if (cj('table#bhfe-table tr').length == 0) {
-    cj('table#bhfe-table').remove();
+  if (cj('table.percentagepricesetfield-bhfe-table tr').length == 0) {
+    cj('table.percentagepricesetfield-bhfe-table').remove();
   }
 
   // Clone financial_type_id field into percentagepricesetfield-block
@@ -180,4 +180,3 @@ cj(function($) {
   // Fire the onChange event handler for "disable for payment method" checkbox.
   percentagepricesetfield_disable_payment_methods_change();
 });
-
