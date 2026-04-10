@@ -13,7 +13,7 @@ CRM.percentagepricesetfield = {
   originalCalculateTotalFee: window.calculateTotalFee,
 
   storePercentageState: function storePercentageState() {
-    CRM.percentagepricesetfield.is_percentage = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
+    CRM.percentagepricesetfield.is_percentage = CRM.$('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
   },
 
   /**
@@ -22,7 +22,7 @@ CRM.percentagepricesetfield = {
    */
   changePaymentProcessor: function changePaymentProcessor() {
 
-    var selected_payment_method = cj('input[name="payment_processor_id"]:checked').val();
+    var selected_payment_method = CRM.$('input[name="payment_processor_id"]:checked').val();
     if (typeof selected_payment_method == 'undefined') {
       selected_payment_method = CRM.vars.percentagepricesetfield.payment_processor_id;
     }
@@ -30,20 +30,20 @@ CRM.percentagepricesetfield = {
     if (CRM.vars.percentagepricesetfield.disable_payment_methods[selected_payment_method]) {
 
       // Hide the option.
-      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
+      CRM.$('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
       // Store the state of the checkbox, so we can restore it later.
       CRM.percentagepricesetfield.storePercentageState();
       // Un-check the checkbox; we have to actually uncheck it, because it's
       // a Price Set Field and will be treated as a line item if checked.
-      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', false);
+      CRM.$('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', false);
     }
     else {
 
       // Restore the previous state of the percentage checkbox.
-      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', CRM.percentagepricesetfield.isPercentage());
+      CRM.$('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', CRM.percentagepricesetfield.isPercentage());
       // Dispaly the option again.
       if (!CRM.vars.percentagepricesetfield.hide_and_force) {
-        cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').show();
+        CRM.$('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').show();
       }
     }
     // Re-calculate the total-with-percentage; in the lines above, we manipulated
@@ -67,13 +67,13 @@ CRM.percentagepricesetfield = {
    * Update the total-plus-percentage display with the correct amount.
    */
   updateTotal: function updateTotal() {
-    if (!cj('#percentagepricesetfield_pricevalue').length) {
+    if (!CRM.$('#percentagepricesetfield_pricevalue').length) {
       // If our total-plus-percentage display element doesn't exist (as it won't
       // on the confirmation page), don't try to update it.
       return;
     }
     var total = CRM.percentagepricesetfield.calculateTotalFee();
-    cj('#percentagepricesetfield_pricevalue').html(CRM.formatMoney(total, false, moneyFormat));
+    CRM.$('#percentagepricesetfield_pricevalue').html(CRM.formatMoney(total, false, moneyFormat));
   },
 
   /**
@@ -84,7 +84,7 @@ CRM.percentagepricesetfield = {
   calculateTotalFee: function calculateTotalFee() {
     // Calculate total per original calculateTotalFee function:
     // If we're not adding a percentage, just return the original total.
-    if (!cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
+    if (!CRM.$('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
       return CRM.percentagepricesetfield.originalCalculateTotalFee();
     }
     var baseTotal;
@@ -100,8 +100,8 @@ CRM.percentagepricesetfield = {
       var lineTax = 0;
       var lineRawTotal;
       var lineAmount;
-      cj("#priceset [price]").each(function () {
-        lineRawTotal = cj(this).data('line_raw_total');
+      CRM.$("#priceset [price]").each(function () {
+        lineRawTotal = CRM.$(this).data('line_raw_total');
         if (lineRawTotal) {
           lineTax = lineRawTotal - (lineRawTotal / (1 + (CRM.vars.percentagepricesetfield.tax_rate/100)));
           baseTotal += lineRawTotal - lineTax;
@@ -111,7 +111,7 @@ CRM.percentagepricesetfield = {
     }
 
     var finalTotal;
-    if (cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
+    if (CRM.$('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
       // Calculate the appropriate percentage.
       var percentage = CRM.vars.percentagepricesetfield.percentage;
       var extra = (baseTotal*percentage/100);
@@ -125,10 +125,9 @@ CRM.percentagepricesetfield = {
     }
     return finalTotal;
   },
-
 };
 
-cj(function() {
+CRM.$(function($){
   // Replace CiviCRM's window.calculateTotalFee with our own. This function is
   // called by various core and extension JS code (e.g., Stripe) to determine
   // the actual total to be charged. In the case of Stripe, this is required so
@@ -140,19 +139,19 @@ cj(function() {
 
   if (CRM.vars.percentagepricesetfield.hide_and_force) {
     // Hide and force if so configured.
-    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', true);
-    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
+    $('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', true);
+    $('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
   }
 
   // Add an onChange handler for all of the payment method options.
-  cj('input[name="payment_processor_id"]').change(CRM.percentagepricesetfield.changePaymentProcessor);
+  $('input[name="payment_processor_id"]').change(CRM.percentagepricesetfield.changePaymentProcessor);
 
 
   // Clone and hide the original 'pricesetTotal' div. We'll use the new one to
   // display the total-plus-percentage amount. This allows us to use the original
   // one to store the without-percentage amount, and our new one to display the
   // total-plus-percentage.
-  var originalTotal = cj('div#pricesetTotal');
+  var originalTotal = $('div#pricesetTotal');
   var myTotal = originalTotal.clone();
   // Modfiy IDs of cloned elements, recursively.
   myTotal.attr('id', 'totalWithPercentage');
@@ -167,26 +166,26 @@ cj(function() {
 
   // Add our function update-plus-percentage, as an event handler for all
   // price fields.
-  cj("input,#priceset select,#priceset").each(function () {
-    if (cj(this).attr('price')) {
-      var eleType =  cj(this).attr('type');
+  $("input,#priceset select,#priceset").each(function () {
+    if ($(this).attr('price')) {
+      var eleType =  $(this).attr('type');
       if ( this.tagName == 'SELECT' ) {
         eleType = 'select-one';
       }
       switch( eleType ) {
         case 'checkbox':
         case 'radio':
-          cj(this).click(CRM.percentagepricesetfield.updateTotal);
+          $(this).click(CRM.percentagepricesetfield.updateTotal);
           break;
 
         case 'text':
-          cj(this)
+          $(this)
             .bind('keyup', CRM.percentagepricesetfield.updateTotal)
             .bind('blur', CRM.percentagepricesetfield.updateTotal);
           break;
 
         case 'select-one':
-          cj(this).change(CRM.percentagepricesetfield.updateTotal);
+          $(this).change(CRM.percentagepricesetfield.updateTotal);
           break;
       }
     }
@@ -197,7 +196,7 @@ cj(function() {
   CRM.percentagepricesetfield.changePaymentProcessor();
 
   // Add an event handler to set is_percentage any time the checkbox is manually changed.
-  cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).change(function(){
-    CRM.percentagepricesetfield.is_percentage = cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
+  $('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).change(function(){
+    CRM.percentagepricesetfield.is_percentage = $('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked');
   });
 });
