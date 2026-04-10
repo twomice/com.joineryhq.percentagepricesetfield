@@ -29,13 +29,13 @@ CRM.$(function($) {
     if (cj('#percentagepricesetfield_hide_and_force').is(':checked')) {
       // If hide-and-force is true, then hide the is_default checkbox and show
       // an [x] to indicate the value is forced.
-      cj('#percentagepricesetfield_is_default').hide().after('<span id="percentagepricesetfield_is_default_x">[x]</span>');
+      cj('#percentagepricesetfield_is_default').prop('checked', true);
+      cj('#percentagepricesetfield_is_default').prop('disabled', true);
     }
     else {
-      // If hide-and-force is false, then show the is_default checkbox and hide
-      // the [x] indicator.
-      cj('#percentagepricesetfield_is_default').show();
-      cj('#percentagepricesetfield_is_default_x').remove();
+      // If hide-and-force is false, then uncheck is_default checkbox
+      cj('#percentagepricesetfield_is_default').prop('checked', false);
+      cj('#percentagepricesetfield_is_default').prop('disabled', false);
     }
   };
 
@@ -114,10 +114,11 @@ CRM.$(function($) {
   // Freeze hide-and-force checkbox if so instructed. See "NOTE ON FREEZING
   // HIDE-AND-FORCE" in percentagepricesetfield.php.
   if (CRM.vars.percentagepricesetfield.hide_and_force_element_freeze) {
-    CRM.$('#percentagepricesetfield_hide_and_force').hide().after('[x]');
+    CRM.$('#percentagepricesetfield_hide_and_force').prop('disabled', true);
     // Also freeze the is_default checkbox, since it will be forced to true
     // whenever hide-and-force is true.
-    CRM.$('#percentagepricesetfield_is_default').hide().after('[x]');
+    CRM.$('#percentagepricesetfield_is_default').prop('checked', true);
+    CRM.$('#percentagepricesetfield_is_default').prop('disabled', true);
   }
   else {
     // If the global hide-and-force-all is false, then hide-and-force might be
