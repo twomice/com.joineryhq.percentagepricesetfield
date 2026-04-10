@@ -208,13 +208,13 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
 function percentagepricesetfield_civicrm_pageRun(&$page) {
   $page_name = $page->getVar('_name');
   if ($page_name == 'CRM_Price_Page_Field') {
-    // Get a list of all percentage fields in this prices set.
+    // Get a list of all percentage fields in this price set.
     $price_set_id = $page->getVar('_sid');
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id, FALSE);
     // Adjust the template variables for each percentage field, to hide certain
     // checkbox-related functionality which is irrelevant to percentage fields.
     $tpl = CRM_Core_Smarty::singleton();
-    $tpl_vars = & $tpl->getTemplateVars();
+    $tpl_vars = $tpl->getTemplateVars();
     foreach ($field_ids as $field_id) {
       if (array_key_exists('priceField', $tpl_vars) && array_key_exists($field_id, $tpl_vars['priceField'])
       ) {
