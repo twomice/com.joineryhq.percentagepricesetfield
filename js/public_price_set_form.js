@@ -147,19 +147,25 @@ cj(function() {
   if (CRM.vars.percentagepricesetfield.hide_and_force) {
     // Hide and force if so configured.
     cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', true);
+    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).hide();
+
+    if (CRM.vars.percentagepricesetfield.show_fees) {
+      // We need to disable the click trigger on the label
+      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('disabled', true);
+    }
+    else {
+      // We aren't showing fees so hide the entire section
+      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
+    }
   }
-  if (CRM.vars.percentagepricesetfield.hide_and_force && !CRM.vars.percentagepricesetfield.show_fees) {
-    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
-  }
-  else if (CRM.vars.percentagepricesetfield.show_fees) {
-    // We show the label but not the checkbox
-   cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).hide();
+
+  // Setup Fees section
+  if (CRM.vars.percentagepricesetfield.show_fees) {
    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.price-set-row').append('<div class="transaction_rate_amount"><span class="content calc-value" id="percentagepricesetfield_feetotal"></span></div>');
   }
 
   // Add an onChange handler for all of the payment method options.
   cj('input[name="payment_processor_id"]').change(CRM.percentagepricesetfield.changePaymentProcessor);
-
 
   // Clone and hide the original 'pricesetTotal' div. We'll use the new one to
   // display the total-plus-percentage amount. This allows us to use the original

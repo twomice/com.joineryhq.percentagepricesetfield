@@ -34,7 +34,6 @@ CRM.$(function($) {
     }
     else {
       // If hide-and-force is false, then uncheck is_default checkbox
-      cj('#percentagepricesetfield_is_default').prop('checked', false);
       cj('#percentagepricesetfield_is_default').prop('disabled', false);
     }
   };
