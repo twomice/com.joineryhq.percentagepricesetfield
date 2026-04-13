@@ -73,10 +73,10 @@ CRM.percentagepricesetfield = {
       return;
     }
     var total = CRM.percentagepricesetfield.calculateTotalFee();
-    cj('#percentagepricesetfield_pricevalue').html(CRM.formatMoney(total, false, moneyFormat));
-    if (cj('#percentagepricesetfield_feetotal').length) {
+    CRM.$('#percentagepricesetfield_pricevalue').html(CRM.formatMoney(total, false, moneyFormat));
+    if (CRM.$('#percentagepricesetfield_feetotal').length) {
       var fees = total - CRM.vars.percentagepricesetfield.baseTotal;
-      cj('#percentagepricesetfield_feetotal').html(CRM.formatMoney(fees, false, moneyFormat));
+      CRM.$('#percentagepricesetfield_feetotal').html(CRM.formatMoney(fees, false, moneyFormat));
     }
   },
 
@@ -88,7 +88,7 @@ CRM.percentagepricesetfield = {
   calculateTotalFee: function calculateTotalFee() {
     // Calculate total per original calculateTotalFee function:
     // If we're not adding a percentage, just return the original total.
-    if (!cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
+    if (!CRM.$('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
       return CRM.percentagepricesetfield.originalCalculateTotalFee();
     }
 
@@ -145,22 +145,22 @@ CRM.$(function($){
 
   if (CRM.vars.percentagepricesetfield.hide_and_force) {
     // Hide and force if so configured.
-    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', true);
-    cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).hide();
+    $('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked', true);
+    $('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).hide();
 
     if (CRM.vars.percentagepricesetfield.show_fees) {
       // We need to disable the click trigger on the label
-      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('disabled', true);
+      $('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('disabled', true);
     }
     else {
       // We aren't showing fees so hide the entire section
-      cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
+      $('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.crm-section').hide();
     }
   }
 
   // Setup Fees section
   if (CRM.vars.percentagepricesetfield.show_fees) {
-   cj('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.price-set-row').append('<div class="transaction_rate_amount"><span class="content calc-value" id="percentagepricesetfield_feetotal"></span></div>');
+    $('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).closest('.price-set-row').append('<div class="transaction_rate_amount"><span class="content calc-value" id="percentagepricesetfield_feetotal"></span></div>');
   }
 
   // Add an onChange handler for all of the payment method options.

@@ -29,12 +29,12 @@ CRM.$(function($) {
     if ($('#percentagepricesetfield_hide_and_force').is(':checked')) {
       // If hide-and-force is true, then hide the is_default checkbox and show
       // an [x] to indicate the value is forced.
-      cj('#percentagepricesetfield_is_default').prop('checked', true);
-      cj('#percentagepricesetfield_is_default').prop('disabled', true);
+      $('#percentagepricesetfield_is_default').prop('checked', true);
+      $('#percentagepricesetfield_is_default').prop('disabled', true);
     }
     else {
       // If hide-and-force is false, then uncheck is_default checkbox
-      cj('#percentagepricesetfield_is_default').prop('disabled', false);
+      $('#percentagepricesetfield_is_default').prop('disabled', false);
     }
   };
 
