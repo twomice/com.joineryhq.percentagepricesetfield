@@ -188,6 +188,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
       'percentage_checkbox_id' => "price_{$field_id}_{$field_value_id}",
       'hide_and_force' => (int) ($allow_hide_and_force && _percentagepricesetfield_get_setting_value($field_id, 'hide_and_force')),
       'is_default' => _percentagepricesetfield_get_setting_value($field_id, 'is_default'),
+      'show_fees' => _percentagepricesetfield_get_setting_value($field_id, 'show_fees'),
       'disable_payment_methods' => _percentagepricesetfield_get_setting_value($field_id, 'disable_payment_methods'),
       'apply_to_taxes' => _percentagepricesetfield_get_setting_value($field_id, 'apply_to_taxes'),
       'payment_processor_id' => ($object->_paymentProcessor['id'] ?? NULL),
@@ -275,10 +276,10 @@ function percentagepricesetfield_civicrm_validateForm($formName, &$fields, &$fil
  */
 function _percentagepricesetfield_get_percentage_field_ids($price_set_id, $limit_enabled = TRUE) {
   // Static cache.
-  static $ret = array();
+  static $ret = [];
   $key = serialize(func_get_args());
   if (!array_key_exists($price_set_id, $ret)) {
-    $field_ids = array();
+    $field_ids = [];
 
     $dao = new CRM_Price_DAO_PriceField();
     if ($price_set_id != 'ALL') {
@@ -288,7 +289,7 @@ function _percentagepricesetfield_get_percentage_field_ids($price_set_id, $limit
       $dao->is_active = 1;
     }
     $dao->find();
-    $ids = array();
+    $ids = [];
     while ($dao->fetch()) {
       $ids[] = (int) $dao->id;
     }
@@ -329,7 +330,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
 
       $base_total = 0;
 
-      $line_items = array();
+      $line_items = [];
       $params = $form->_submitValues;
 
       if (!empty($form->_values['fee'])) {
@@ -422,9 +423,9 @@ function _percentagepricesetfield_get_setting_value_override($setting_name) {
  * @return Array of setting values.
  */
 function _percentagepricesetfield_get_settings($field_id, bool $preProcess = TRUE) {
-  static $ret = array();
+  static $ret = [];
   if (!array_key_exists($field_id, $ret)) {
-    $values = array();
+    $values = [];
     if (!$field_id) {
       return $values;
     }
@@ -592,18 +593,20 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $resource->addStyleFile('com.joineryhq.percentagepricesetfield', 'css/admin_price_field.css', 100, 'page-header');
 
   // Define an array to hold field descriptions.
-  $descriptions = array();
+  $descriptions = [];
 
   // Add our own fields to this form, to handle percentage fields
-  $form->addElement('checkbox', 'is_percentagepricesetfield', E::ts('Field calculates "Automatic Additional Percentage"'));
+  $form->addToggle('is_percentagepricesetfield', E::ts('Field calculates "Automatic Additional Percentage"'));
   $form->addElement('text', 'percentagepricesetfield_', E::ts('Short label for line item'));
   $form->addElement('text', 'percentagepricesetfield_percentage', E::ts('Percentage'));
-  $form->addElement('checkbox', 'percentagepricesetfield_apply_to_taxes', E::ts('Apply percentage to tax amounts'));
-  $hide_and_force_element = $form->addElement('checkbox', 'percentagepricesetfield_hide_and_force', E::ts('Hide checkbox and force to "yes"'));
+  $form->addToggle('percentagepricesetfield_apply_to_taxes', E::ts('Apply percentage to tax amounts'));
+  $hide_and_force_element = $form->addToggle('percentagepricesetfield_hide_and_force', E::ts('Hide checkbox and force to "yes"'));
   $descriptions['percentagepricesetfield_hide_and_force'] = E::ts('This option will force the additional percentage to be applied, and hide the check box, in front-end forms. (Additional percentage is always an option in back-office forms.)');
 
-  $is_default_element = $form->addElement('checkbox', 'percentagepricesetfield_is_default', E::ts('Checked by default'));
+  $is_default_element = $form->addToggle('percentagepricesetfield_is_default', E::ts('Checked by default'));
   $descriptions['percentagepricesetfield_is_default'] = E::ts('Cause the check-box to be checked by default? This option is automatically selected if the above "Hide and force" option is selected.');
+
+  $form->addToggle('percentagepricesetfield_show_fees', E::ts('Show label and total fees?'));
 
   // Support global "hide and force" config option; if it's TRUE, then tell JS
   // to freeze this field, and adjust its description.
@@ -648,13 +651,14 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   $tpl = CRM_Core_Smarty::singleton();
   $bhfe = $tpl->getTemplateVars('beginHookFormElements');
   if (!$bhfe) {
-    $bhfe = array();
+    $bhfe = [];
   }
   $bhfe[] = 'is_percentagepricesetfield';
   $bhfe[] = 'percentagepricesetfield_percentage';
   $bhfe[] = 'percentagepricesetfield_apply_to_taxes';
   $bhfe[] = 'percentagepricesetfield_hide_and_force';
   $bhfe[] = 'percentagepricesetfield_is_default';
+  $bhfe[] = 'percentagepricesetfield_show_fees';
   $bhfe[] = 'percentagepricesetfield_disable_payment_methods';
   $form->assign('beginHookFormElements', $bhfe);
 
@@ -662,7 +666,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
   _percentagepricesetfield_setDefaults_adminPriceField($form);
 
   // Pass some of these values to JavaScript.
-  $vars = array();
+  $vars = [];
   $vars['descriptions'] = $descriptions;
   $vars['bhfe_fields'] = $bhfe;
   $vars['hide_and_force_element_freeze'] = $hide_and_force_element_freeze;
@@ -683,7 +687,7 @@ function _percentagepricesetfield_setDefaults_adminPriceField(&$form) {
   $field_id = $form->getVar('_fid');
   $percentage_field_ids = _percentagepricesetfield_get_percentage_field_ids($price_set_id, FALSE);
   if (!$field_id || in_array($field_id, $percentage_field_ids)) {
-    $defaults = array();
+    $defaults = [];
     if (!$field_id) {
       $defaults['percentagepricesetfield_apply_to_taxes'] = 1;
     }
@@ -773,10 +777,11 @@ function _percentagepricesetfield_postProcess_AdminPriceField($form) {
       'apply_to_taxes' => (int) !empty($values['percentagepricesetfield_apply_to_taxes']),
       'hide_and_force' => (int) !empty($values['percentagepricesetfield_hide_and_force']),
       'is_default' => (int) !empty($values['percentagepricesetfield_is_default']),
+      'show_fees' => (int) !empty($values['percentagepricesetfield_show_fees']),
       'disable_payment_methods' => (
-      !empty($values['percentagepricesetfield_disable_payment_methods']) ?
-      CRM_Utils_Array::implodePadded(array_keys($values['percentagepricesetfield_disable_payment_methods'])) :
-      ''
+        !empty($values['percentagepricesetfield_disable_payment_methods']) ?
+        CRM_Utils_Array::implodePadded(array_keys($values['percentagepricesetfield_disable_payment_methods'])) :
+        ''
       ),
       'field_id' => $field_id,
     );
@@ -821,6 +826,7 @@ function _percentagepricesetfield_get_valid_fields() {
     'financial_type_id' => 'Integer',
     'apply_to_taxes' => 'Boolean',
     'hide_and_force' => 'Boolean',
+    'show_fees' => 'Boolean',
     'disable_payment_methods' => 'String',
   );
   return $valid_fields;
@@ -835,7 +841,7 @@ function _percentagepricesetfield_get_valid_fields() {
 function _percentagepricesetfield_create_field($field_values) {
   $valid_fields = _percentagepricesetfield_get_valid_fields();
 
-  $fields = $values = $params = array();
+  $fields = $values = $params = [];
   $param_key = 1;
   foreach ($valid_fields as $valid_field => $data_type) {
     if (array_key_exists($valid_field, $field_values)) {
@@ -888,7 +894,7 @@ function _percentagepricesetfield_update_field($field_values) {
 
   // Now update the record with relevant values.
   $valid_fields = _percentagepricesetfield_get_valid_fields();
-  $updates = $params = array();
+  $updates = $params = [];
   $param_key = 1;
   unset($field_values['field_id']);
   foreach ($valid_fields as $valid_field => $data_type) {
