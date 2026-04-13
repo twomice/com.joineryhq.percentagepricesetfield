@@ -10,14 +10,14 @@ CRM.$(function($) {
   // of it, we can control the order of execution.
   percentagepricesetfield_option_html_type_original = window.option_html_type;
   option_html_type = function(form) {
-    var html_type_name = cj('#html_type').val();
+    var html_type_name = $('#html_type').val();
     // Call the original event listener.
     percentagepricesetfield_option_html_type_original(form);
     if (html_type_name == 'CheckBox') {
-      cj("#percentagepricesetfield-block").show();
+      $("#percentagepricesetfield-block").show();
     }
     else {
-      cj("#percentagepricesetfield-block").hide();
+      $("#percentagepricesetfield-block").hide();
     }
     is_percentagepricesetfield_change();
   };
@@ -26,7 +26,7 @@ CRM.$(function($) {
    * Change handler for hide-and-force field.
    */
   var hide_and_force_change = function() {
-    if (cj('#percentagepricesetfield_hide_and_force').is(':checked')) {
+    if ($('#percentagepricesetfield_hide_and_force').is(':checked')) {
       // If hide-and-force is true, then hide the is_default checkbox and show
       // an [x] to indicate the value is forced.
       cj('#percentagepricesetfield_is_default').prop('checked', true);
@@ -44,29 +44,29 @@ CRM.$(function($) {
    * depending on whether the is_percentagepricesetfield checkbox is checked.
    */
   var is_percentagepricesetfield_change = function() {
-    if (cj('#html_type').val() != 'CheckBox') {
+    if ($('#html_type').val() != 'CheckBox') {
       return;
     }
 
-    var el_is_percentagepricesetfield = cj('input#is_percentagepricesetfield');
+    var el_is_percentagepricesetfield = $('input#is_percentagepricesetfield');
     if (
       (el_is_percentagepricesetfield.attr('type') == 'checkbox' && el_is_percentagepricesetfield.prop('checked')) ||
       (el_is_percentagepricesetfield.attr('type') == 'hidden' && el_is_percentagepricesetfield.val() == 1)
     ) {
-      cj("#showoption").hide();
-      cj("#optionsPerLine").hide();
-      cj(".crm-price-field-form-block-is_display_amounts").hide();
-      cj("#percentagepricesetfield_financial_type").show();
-      cj("div#percentagepricesetfield-block table tbody.percentagepricesetfield_details").show();
-      cj("div#percentagepricesetfield-block").addClass('percentagepricesetfield-highlight');
+      $("#showoption").hide();
+      $("#optionsPerLine").hide();
+      $(".crm-price-field-form-block-is_display_amounts").hide();
+      $("#percentagepricesetfield_financial_type").show();
+      $("div#percentagepricesetfield-block table tbody.percentagepricesetfield_details").show();
+      $("div#percentagepricesetfield-block").addClass('percentagepricesetfield-highlight');
     }
     else {
-      cj("#showoption").show();
-      cj("#optionsPerLine").show();
-      cj(".crm-price-field-form-block-is_display_amounts").show();
-      cj("#percentagepricesetfield_financial_type").hide();
-      cj("div#percentagepricesetfield-block table tbody.percentagepricesetfield_details").hide();
-      cj("div#percentagepricesetfield-block").removeClass('percentagepricesetfield-highlight');
+      $("#showoption").show();
+      $("#optionsPerLine").show();
+      $(".crm-price-field-form-block-is_display_amounts").show();
+      $("#percentagepricesetfield_financial_type").hide();
+      $("div#percentagepricesetfield-block table tbody.percentagepricesetfield_details").hide();
+      $("div#percentagepricesetfield-block").removeClass('percentagepricesetfield-highlight');
     }
   };
 
@@ -86,7 +86,7 @@ CRM.$(function($) {
   // fields are added in this extension's buildForm hook.)
   // First create a container to hold these fields, including two separate
   // tbody elements (so two groups of fields can be hidden/displayed independently).
-  cj('div#price-block').before(
+  $('div#price-block').before(
     '<div id="percentagepricesetfield-block" class="hiddenElement" style="display: none;">' +
     '  <table class="form-layout">' +
     '    <tbody class="percentagepricesetfield_main"></tbody>' +
@@ -96,18 +96,18 @@ CRM.$(function($) {
   );
   // Add a unique ID to the table holding bhfe fields, so we can access it
   // directly later.
-  cj('input#is_percentagepricesetfield').closest('table').addClass('percentagepricesetfield-bhfe-table');
+  $('input#is_percentagepricesetfield').closest('table').addClass('percentagepricesetfield-bhfe-table');
   // Move the is_percentagepricesetfield bhfe field to its own tbody (there's
   // a second tbody, for other options, which will be hidden, but we don't want
   // to hide this master field).
-  cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_main').append(cj('table.percentagepricesetfield-bhfe-table input#is_percentagepricesetfield').closest('tr'));
+  $('div#percentagepricesetfield-block table tbody.percentagepricesetfield_main').append($('table.percentagepricesetfield-bhfe-table input#is_percentagepricesetfield').closest('tr'));
   // Move the rest of our bhfe fields into the second tbody.
-  cj('table.percentagepricesetfield-bhfe-table td [id^="percentagepricesetfield_"]').each(function(idx, field) {
-    var tr = cj(field).closest('tr');
+  $('table.percentagepricesetfield-bhfe-table td [id^="percentagepricesetfield_"]').each(function(idx, field) {
+    var tr = $(field).closest('tr');
     tr.attr('id', 'tr-' + tr.find('input').attr('name').split('[')[0]);
     tr.find('td:eq(0)').addClass('label');
     tr.find('td').removeClass('nowrap');
-    cj('div#percentagepricesetfield-block table tbody.percentagepricesetfield_details').append(tr);
+    $('div#percentagepricesetfield-block table tbody.percentagepricesetfield_details').append(tr);
   });
 
   // Freeze hide-and-force checkbox if so instructed. See "NOTE ON FREEZING
@@ -128,16 +128,16 @@ CRM.$(function($) {
   //
   // Append any descriptions for bhfe fields.
   for (var i in CRM.vars.percentagepricesetfield.descriptions) {
-    cj('tr#tr-'+ i +' td.input').append('<div class="description">'+ CRM.vars.percentagepricesetfield.descriptions[i] +'</div>');
+    $('tr#tr-'+ i +' td.input').append('<div class="description">'+ CRM.vars.percentagepricesetfield.descriptions[i] +'</div>');
   }
 
   // Remove the bhfe table, but only if it's empty.
-  if (cj('table.percentagepricesetfield-bhfe-table tr').length == 0) {
-    cj('table.percentagepricesetfield-bhfe-table').remove();
+  if ($('table.percentagepricesetfield-bhfe-table tr').length == 0) {
+    $('table.percentagepricesetfield-bhfe-table').remove();
   }
 
   // Clone financial_type_id field into percentagepricesetfield-block
-  myFinancialTypeId = cj('select#financial_type_id').closest('tr').clone();
+  myFinancialTypeId = $('select#financial_type_id').closest('tr').clone();
   // Modfiy identifying attributes of cloned elements, recursively.
   myFinancialTypeId.attr('id', 'percentagepricesetfield_financial_type');
   myFinancialTypeId.find('*').each(function(idx, el) {
@@ -158,21 +158,21 @@ CRM.$(function($) {
   // first checkbox option of the price field, but it won't be set in the field
   // we've cloned).
   if (CRM.vars.percentagepricesetfield && CRM.vars.percentagepricesetfield.hasOwnProperty('values')) {
-    cj('#percentagepricesetfield_financial_type_id').val(CRM.vars.percentagepricesetfield.values.financial_type_id);
+    $('#percentagepricesetfield_financial_type_id').val(CRM.vars.percentagepricesetfield.values.financial_type_id);
   }
 
   // Add change handler for "is percentage" checkbox
-  cj('input#is_percentagepricesetfield').change(is_percentagepricesetfield_change);
+  $('input#is_percentagepricesetfield').change(is_percentagepricesetfield_change);
 
   // Add change handler for "hide and force" checkbox
-  cj('#percentagepricesetfield_hide_and_force').change(hide_and_force_change);
+  $('#percentagepricesetfield_hide_and_force').change(hide_and_force_change);
 
   // Add change handler for "disable for payment method" checkbox
   CRM.$('input[id^="percentagepricesetfield_disable_payment_methods_"]').change(percentagepricesetfield_disable_payment_methods_change);
 
   // Fire the onChange event handler for the html_type field. This adjusts form layout
   // to properly support existing percentage priceset fields.
-  // Note: on "new price field" forms, we could call this as cj('#html_type').change();
+  // Note: on "new price field" forms, we could call this as $('#html_type').change();
   // but on "edit price field" forms, #html_type has no onChange event handler.
   // So we call the function directly in both cases.
   option_html_type();
