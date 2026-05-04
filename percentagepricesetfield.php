@@ -182,7 +182,7 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
     $formObject = $args[3];
     $taxRate = $formObject->_priceSet['fields'][$field_id]['options'][$field_value_id]['tax_rate'];
     // Insert our JavaScript code and variables.
-    $vars = array(
+    $vars = [
       'percentage' => _percentagepricesetfield_get_percentage($price_set_id),
       'tax_rate' => $taxRate,
       'percentage_checkbox_id' => "price_{$field_id}_{$field_value_id}",
@@ -192,12 +192,8 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
       'disable_payment_methods' => _percentagepricesetfield_get_setting_value($field_id, 'disable_payment_methods'),
       'apply_to_taxes' => _percentagepricesetfield_get_setting_value($field_id, 'apply_to_taxes'),
       'payment_processor_id' => ($object->_paymentProcessor['id'] ?? NULL),
-    );
-    $resource = CRM_Core_Resources::singleton();
-    $content .= '<script type="text/javascript">';
-    $content .= 'CRM.vars.percentagepricesetfield = ' . json_encode($vars) . ';';
-    $content .= file_get_contents($resource->getPath('com.joineryhq.percentagepricesetfield', 'js/public_price_set_form.js'));
-    $content .= '</script>';
+    ];
+    Civi::resources()->addVars('percentagepricesetfield', $vars);
   }
 }
 
@@ -517,6 +513,9 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
         }
       }
     }
+
+    // Add the JS resource
+    Civi::resources()->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/public_price_set_form.js', 11, 'page-footer');
   }
 }
 
@@ -675,6 +674,7 @@ function _percentagepricesetfield_buildForm_AdminPriceField(&$form) {
     $values = _percentagepricesetfield_get_settings($field_id);
     $vars['values'] = $values;
   }
+  Civi::resources()->addScriptFile('com.joineryhq.percentagepricesetfield', 'js/public_price_set_form.js', 11, 'page-footer');
   $resource->addVars('percentagepricesetfield', $vars);
 }
 

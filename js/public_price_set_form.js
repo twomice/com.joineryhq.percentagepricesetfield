@@ -89,7 +89,8 @@ CRM.percentagepricesetfield = {
     // Calculate total per original calculateTotalFee function:
     // If we're not adding a percentage, just return the original total.
     if (!CRM.$('#' + CRM.vars.percentagepricesetfield.percentage_checkbox_id).prop('checked')) {
-      return CRM.percentagepricesetfield.originalCalculateTotalFee();
+      CRM.vars.percentagepricesetfield.baseTotal = CRM.percentagepricesetfield.originalCalculateTotalFee();
+      return CRM.vars.percentagepricesetfield.baseTotal;
     }
 
     var baseTotal;
