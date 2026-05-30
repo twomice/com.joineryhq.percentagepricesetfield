@@ -719,7 +719,7 @@ function _percentagepricesetfield_rectify_price_options($field_values) {
       )
     );
   }
-  catch (CiviCRM_API3_Exception $e) {
+  catch (CRM_Core_Exception $e) {
     $error = $e->getMessage();
     CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__, 2 => $error)));
   }
@@ -733,7 +733,7 @@ function _percentagepricesetfield_rectify_price_options($field_values) {
         )
       );
     }
-    catch (CiviCRM_API3_Exception $e) {
+    catch (CRM_Core_Exception $e) {
       $error = $e->getMessage();
       CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__ . "|{$value['id']}", 2 => $error)));
     }
@@ -752,7 +752,7 @@ function _percentagepricesetfield_rectify_price_options($field_values) {
       )
     );
   }
-  catch (CiviCRM_API3_Exception $e) {
+  catch (CRM_Core_Exception $e) {
     $error = $e->getMessage();
     CRM_Core_Error::fatal(ts('Percentage Price Set Field: fatal error (on line %1) while rectifying price options: %2', array(1 => __LINE__, 2 => $error)));
   }
@@ -1083,7 +1083,7 @@ function _percentagepricesetfield_get_field_value($field_id) {
       )
     );
   }
-  catch (CiviCRM_API3_Exception $e) {
+  catch (CRM_Core_Exception $e) {
     CRM_Core_Error::debug_log_message('API Error in get PriceFieldValue: ' . $e->getMessage());
     return '';
   }
