@@ -14,10 +14,10 @@
     <email>allen@joineryhq.com</email>
   </maintainer>
   <releaseDate>2025-09-16</releaseDate>
-  <version>1.6.2</version>
+  <version>1.7.0</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>5.65</ver>
+    <ver>6.10</ver>
   </compatibility>
   <comments>Initial development sponsored by the Vestibular Disorders Assocation.</comments>
   <civix>
@@ -27,8 +27,8 @@
   <mixins>
     <mixin>menu-xml@1.0.0</mixin>
     <mixin>setting-php@1.0.0</mixin>
-    <mixin>smarty-v2@1.0.3</mixin>
     <mixin>scan-classes@1.0.0</mixin>
+    <mixin>smarty@1.0.3</mixin>
   </mixins>
   <classloader>
     <psr0 prefix="CRM_" path="."/>
