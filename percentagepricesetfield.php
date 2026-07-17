@@ -201,6 +201,34 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
 }
 
 /**
+ * Implementation of hook_civicrm_pre
+ */
+function percentagepricesetfield_civicrm_pre($op, $objectName, $objectId, &$objectRef) {
+  if ($objectName == 'ContributionSoft' && $op != 'delete') {
+    $result = civicrm_api3('LineItem', 'get', [
+      'sequential' => 1,
+      'return' => ['price_field_id', 'line_total'],
+      'contribution_id' => $objectRef['contribution_id'],
+    ]);
+
+    $minus = $lineTotal = 0;
+    //get all percentage fields from price sets
+    $percent = _percentagepricesetfield_get_percentage_field_ids('ALL');
+    foreach ($result['values'] as $key => $value) {
+      $lineTotal = $lineTotal + $value['line_total'];
+      if (in_array($value['price_field_id'], $percent)) {
+        //find relevant percentage total value
+        $minus = $value['line_total'];
+      }
+    }
+
+    if (is_numeric($minus)) {
+      $objectRef['amount'] = $lineTotal - $minus;
+    }
+  }
+}
+
+/**
  * Implements hook_civicrm_pageRun().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_pageRun
