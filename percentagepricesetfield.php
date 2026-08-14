@@ -46,8 +46,9 @@ function percentagepricesetfield_civicrm_copy($objectName, &$object, $original_i
  * Implements hook_civicrm_buildAmount().
  */
 function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount) {
-  if (!empty($form->_priceSetId)) {
-    $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId, TRUE);
+  $priceSetId = _percentagepricesetfield_get_form_pricesetid($form);
+  if (!empty($priceSetId)) {
+    $field_ids = _percentagepricesetfield_get_percentage_field_ids($priceSetId, TRUE);
     if (empty($field_ids)) {
       // This form doesn't use a priceset with percentage fields. Just return.
       return;
@@ -62,7 +63,7 @@ function percentagepricesetfield_civicrm_buildAmount($pageType, &$form, &$amount
         if (!empty($form->_submitValues["price_{$field_id}"][$option_id])) {
           $option['amount'] = _percentagepricesetfield_calculate_additional_amount($form);
           $option['tax_amount'] = $option['amount'] * ($option['tax_rate'] / 100);
-          $percent = _percentagepricesetfield_get_percentage($form->_priceSetId);
+          $percent = _percentagepricesetfield_get_percentage($priceSetId);
           $option['label'] = $percent . '%';
         }
       }
@@ -179,8 +180,8 @@ function percentagepricesetfield_civicrm_alterContent(&$content, $context, $tplN
       return;
     }
 
-    $formObject = $args[3];
-    $taxRate = $formObject->_priceSet['fields'][$field_id]['options'][$field_value_id]['tax_rate'];
+    $priceSetMetadata = CRM_Price_BAO_PriceSet::getCachedPriceSetDetail((int) $price_set_id);
+    $taxRate = $priceSetMetadata['fields'][$field_id]['options'][$field_value_id]['tax_rate'] ?? NULL;
     // Insert our JavaScript code and variables.
     $vars = array(
       'percentage' => _percentagepricesetfield_get_percentage($price_set_id),
@@ -323,8 +324,9 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
   static $additional_amount;
   if (!isset($additional_amount)) {
     $additional_amount = 0;
-    if ($form->_priceSetId) {
-      $field_ids = _percentagepricesetfield_get_percentage_field_ids($form->_priceSetId);
+    $priceSetId = _percentagepricesetfield_get_form_pricesetid($form);
+    if ($priceSetId) {
+      $field_ids = _percentagepricesetfield_get_percentage_field_ids($priceSetId);
       $field_id = array_shift($field_ids);
 
       $base_total = 0;
@@ -332,12 +334,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
       $line_items = array();
       $params = $form->_submitValues;
 
-      if (!empty($form->_values['fee'])) {
-        $fields = $form->_values['fee'];
-      }
-      else {
-        $fields = $form->_priceSet['fields'];
-      }
+      $fields = _percentagepricesetfield_get_form_price_fields($form);
       unset($fields[$field_id]);
 
       CRM_Price_BAO_PriceSet::processAmount($fields, $params, $line_items);
@@ -358,7 +355,7 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
         }
       }
 
-      $percentage = _percentagepricesetfield_get_percentage($form->_priceSetId);
+      $percentage = _percentagepricesetfield_get_percentage($priceSetId);
       $additional_amount = round(($base_total * $percentage / 100), 2);
     }
   }
@@ -520,6 +517,58 @@ function _percentagepricesetfield_buildForm_public_price_set_form($form) {
 }
 
 /**
+ * For a given form, get the ID of the price set it's using.
+ *
+ * Some forms (e.g. CRM_Event_Form_ParticipantFeeSelection as of CiviCRM 6.x)
+ * no longer define $_priceSetId, and expose getPriceSetID() instead.
+ *
+ * @param Object $form An object extending CRM_Core_Form.
+ * @return Mixed The price set ID, if any; otherwise NULL.
+ */
+function _percentagepricesetfield_get_form_pricesetid($form) {
+  // From outside the class, get_object_vars() lists only readable properties,
+  // so this won't fatal on private ones.
+  $properties = get_object_vars($form);
+  if (array_key_exists('_priceSetId', $properties)) {
+    return $properties['_priceSetId'];
+  }
+  try {
+    if (method_exists($form, 'getPriceSetID')) {
+      return $form->getPriceSetID();
+    }
+    return $form->get('priceSetId') ?: NULL;
+  }
+  catch (Throwable $e) {
+    return NULL;
+  }
+}
+
+/**
+ * For a given form, get the price field metadata for its price set.
+ *
+ * @param Object $form An object extending CRM_Core_Form.
+ * @return Array Price field metadata, keyed by price field ID.
+ */
+function _percentagepricesetfield_get_form_price_fields($form) {
+  $properties = get_object_vars($form);
+  if (!empty($properties['_values']['fee'])) {
+    return $properties['_values']['fee'];
+  }
+  if (method_exists($form, 'getPriceFieldMetaData')) {
+    return $form->getPriceFieldMetaData();
+  }
+  if (!empty($properties['_priceSet']['fields'])) {
+    return $properties['_priceSet']['fields'];
+  }
+  $priceSetId = _percentagepricesetfield_get_form_pricesetid($form);
+  if (empty($priceSetId)) {
+    return array();
+  }
+  $priceSetMetadata = CRM_Price_BAO_PriceSet::getCachedPriceSetDetail((int) $priceSetId);
+  return ($priceSetMetadata['fields'] ?? array());
+}
+
+/**
  * For a given form, get the HTML "id" attribute for the percentage price field,
  * if any.
  *
@@ -534,8 +583,8 @@ function _percentagepricesetfield_get_form_percentage_field_id($form) {
     $priceSetId = CRM_Utils_Request::retrieve('sid', 'Int');
   }
   else {
-    // For other forms, it's a property of the form.
-    $priceSetId = $form->_priceSetId;
+    // For other forms, get it from the form itself.
+    $priceSetId = _percentagepricesetfield_get_form_pricesetid($form);
   }
   if (!empty($priceSetId)) {
     $field_ids = _percentagepricesetfield_get_percentage_field_ids($priceSetId, TRUE);
