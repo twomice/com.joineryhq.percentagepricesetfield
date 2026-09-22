@@ -2,8 +2,8 @@
 
 use CRM_Percentagepricesetfield_ExtensionUtil as E;
 
-return array(
-  'percentagepricesetfield_hide_and_force_all' => array(
+return [
+  'percentagepricesetfield_hide_and_force_all' => [
     'group_name' => 'Percentagepricesetfield Settings',
     'group' => 'percentagepricesetfield',
     'name' => 'percentagepricesetfield_hide_and_force_all',
@@ -17,5 +17,5 @@ return array(
     'html_type' => '',
     'quick_form_type' => 'YesNo',
     'default' => 0,
-  ),
-);
+  ],
+];
