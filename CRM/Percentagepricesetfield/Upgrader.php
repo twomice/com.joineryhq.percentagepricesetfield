@@ -22,7 +22,7 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Extension_Upgrader_Base {
     $field_ids = _percentagepricesetfield_get_percentage_field_ids('ALL', FALSE);
     if (!empty($field_ids)) {
       $message = ts('There were existing percentage price fields; all percentage-related data for these fields has been permanently lost, and the fields will now behave as normal checkbox fields.');
-      CRM_Core_Session::setStatus($message, ts('Abandonded fields remaining'), 'alert', array('expires' => 0));
+      CRM_Core_Session::setStatus($message, ts('Abandonded fields remaining'), 'alert', ['expires' => 0]);
     }
 
     $this->executeSqlFile('sql/uninstall.sql');
@@ -42,7 +42,7 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Extension_Upgrader_Base {
     $field_ids = _percentagepricesetfield_get_percentage_field_ids('ALL', FALSE);
     if (!empty($field_ids)) {
       $message = ts('There are existing percentage price fields; all percentage-related data for these fields will be permanently lost if the Percentage Price Set Field extension is uninstalled.');
-      CRM_Core_Session::setStatus($message, ts('Abandonded fields remaining'), 'alert', array('expires' => 0));
+      CRM_Core_Session::setStatus($message, ts('Abandonded fields remaining'), 'alert', ['expires' => 0]);
     }
   }
 
@@ -96,7 +96,7 @@ class CRM_Percentagepricesetfield_Upgrader extends CRM_Extension_Upgrader_Base {
     CRM_Core_DAO::executeQuery($query);
 
     // Also clear caches, because in version 1.2 we added a new menu path.
-    civicrm_api3('system', 'flush', array());
+    civicrm_api3('system', 'flush', []);
 
     return TRUE;
   }
