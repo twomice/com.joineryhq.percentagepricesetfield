@@ -340,6 +340,18 @@ function _percentagepricesetfield_calculate_additional_amount($form) {
       }
       unset($fields[$field_id]);
 
+      // Normalize formatted monetary quantities before numeric conversion.
+      foreach ($fields as $price_field_id => $price_field) {
+        $price_key = "price_{$price_field_id}";
+        if (($price_field['html_type'] ?? NULL) !== 'Text' ||
+          empty($price_field['is_enter_qty']) ||
+          !isset($params[$price_key]) ||
+          !is_string($params[$price_key])) {
+          continue;
+        }
+        $params[$price_key] = CRM_Utils_Rule::cleanMoney($params[$price_key]);
+      }
+
       CRM_Price_BAO_PriceSet::processAmount($fields, $params, $line_items);
 
       // Calculate differently depending on "apply to taxes" setting.
